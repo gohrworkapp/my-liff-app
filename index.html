@@ -2,104 +2,559 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GoHR Check-in</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>GoHR - ระบบลงเวลา</title>
+  
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
-      /* ใส่ CSS ของคุณตามเดิมที่นี่ได้เลยครับ */
-      body { font-family: sans-serif; padding: 20px; text-align: center; }
-      .btn { padding: 15px; width: 100%; margin: 10px 0; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; }
-      .hidden { display: none; }
+    /* ... ROOT & BODY ... */
+    :root {
+      --primary: #0D47A1;
+      --success: #1B5E20;
+      --warning: #F57C00;
+      --info: #0288D1;
+      --danger: #B71C1C;
+      --text: #37474F;
+      --bg: #F5F7FA;
+    }
+
+    body {
+      font-family: 'Kanit', sans-serif;
+      background-color: var(--bg);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 450px;
+      background: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    /* Page Management */
+    .page-section { display: none; flex-direction: column; height: 100%; }
+    .active-page { display: flex; }
+
+    /* --- LOGIN / REGISTER PAGE --- */
+    #registerPage {
+      padding: 40px 30px;
+      justify-content: center;
+      box-sizing: border-box;
+      background: white;
+    }
+
+    .logo-area { text-align: center; margin-bottom: 30px; }
+    .logo-icon { font-size: 3.5rem; color: var(--primary); margin-bottom: 15px; }
+    
+    .profile-confirm {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #FAFAFA;
+      border-radius: 15px;
+      border: 1px dashed #B0BEC5;
+    }
+    
+    .input-box {
+      width: 100%;
+      max-width: 280px;
+      margin: 0 auto 20px auto;
+      padding: 16px;
+      border: 2px solid #ECEFF1;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-family: 'Kanit';
+      text-align: center;
+      background: #FAFAFA;
+      transition: 0.3s;
+      outline: none;
+      display: block;
+      box-sizing: border-box;
+    }
+    .input-box:focus { border-color: var(--primary); background: white; }
+
+    /* --- DASHBOARD PAGE --- */
+    .header {
+      background: var(--primary);
+      padding: 30px 20px 60px;
+      border-bottom-left-radius: 30px;
+      border-bottom-right-radius: 30px;
+      text-align: center;
+      color: white;
+      position: relative;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255,255,255,0.15);
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .profile-img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.9);
+      object-fit: cover;
+      background-color: #E0E0E0;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .user-name { font-size: 1.4rem; font-weight: 500; margin: 10px 0 0; }
+    .user-id { font-size: 0.9rem; opacity: 0.8; font-weight: 300; }
+
+    /* Status Card */
+    .status-card {
+      background: white;
+      margin: -40px 20px 20px;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      text-align: center;
+      position: relative;
+    }
+    .status-label { font-size: 0.9rem; color: #90A4AE; margin-bottom: 5px; }
+    .time-badge {
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+    }
+    .gps-status {
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #78909C;
+    }
+
+    /* Buttons */
+    .content { padding: 10px 25px 40px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; }
+    
+    .action-btn {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 16px;
+      font-size: 1.1rem;
+      font-family: 'Kanit';
+      font-weight: 500;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.1s;
+    }
+    .action-btn:active { transform: scale(0.98); }
+
+    .btn-in { background: var(--success); }
+    .btn-break { background: var(--warning); font-size: 1rem; }
+    .btn-resume { background: var(--info); font-size: 1rem; }
+    .btn-out { background: var(--danger); }
+    
+    .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+    /* Loader & Modal */
+    .loader-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(2px);
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #E0E0E0;
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+
+    .custom-modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(3px);
+    }
+    .custom-modal-box {
+      background: white;
+      width: 85%;
+      max-width: 320px;
+      padding: 25px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 10px; color: var(--text); }
+    .modal-desc { font-size: 1rem; color: #555; margin-bottom: 20px; line-height: 1.5; }
+    .modal-btns { display: flex; gap: 10px; justify-content: center; }
+    .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-family: 'Kanit'; font-size: 1rem; cursor: pointer; }
+    .btn-confirm { background: var(--primary); color: white; }
+    .btn-cancel { background: #ECEFF1; color: #555; }
+
   </style>
 </head>
 <body>
-  <h2>ระบบลงเวลาทำงาน</h2>
-  <div id="status">กำลังโหลดข้อมูล...</div>
-  <div id="profile" class="hidden">
-      <img id="pictureUrl" src="" style="width:100px; border-radius:50%;">
-      <p>สวัสดี: <span id="displayName"></span></p>
+
+  <div id="loadingScreen" class="loader-overlay">
+    <div class="spinner"></div>
+    <p id="loadingText" style="margin-top: 15px; color: #555;">กำลังเชื่อมต่อระบบ...</p>
+  </div>
+
+  <div id="customModal" class="custom-modal-overlay hidden">
+    <div class="custom-modal-box">
+      <div id="modalTitle" class="modal-title">แจ้งเตือน</div>
+      <div id="modalDesc" class="modal-desc">ข้อความ</div>
+      <div id="modalBtns" class="modal-btns"></div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    
+    <div id="registerPage" class="page-section">
+      <div class="logo-area">
+        <i class="fas fa-user-tag logo-icon"></i>
+        <h2 style="margin:0; color:var(--primary);">ยืนยันตัวตน</h2>
+        <p style="color:#90A4AE;">ผูกบัญชี LINE กับรหัสพนักงาน</p>
+      </div>
       
-      <button class="btn" onclick="sendData('เข้างาน')">เข้างาน</button>
-      <button class="btn" onclick="sendData('ออกงาน')">ออกงาน</button>
+      <div class="profile-confirm">
+         <img id="regisProfileImg" src="" style="width:60px; height:60px; border-radius:50%; display:block; margin:0 auto 10px;">
+         <div id="regisDisplayName" style="font-weight:500;"></div>
+         <div style="font-size:0.8rem; color:#90A4AE;">บัญชี LINE ของคุณ</div>
+      </div>
+
+      <input type="text" id="empIdInput" class="input-box" placeholder="กรอกรหัสพนักงาน (เช่น A001)" />
+      
+      <button class="action-btn" style="background:var(--primary); max-width: 280px; margin: 0 auto;" onclick="handleRegisterMap()">
+        เชื่อมต่อบัญชี
+      </button>
+    </div>
+
+    <div id="dashboardPage" class="page-section">
+      <div class="header">
+        <div class="logout-btn" onclick="logout()">
+          <i class="fas fa-sync-alt"></i> รีโหลด
+        </div>
+        <img id="userPhoto" src="https://via.placeholder.com/100" class="profile-img">
+        <div class="user-info">
+          <h2 id="userName" class="user-name">...</h2>
+          <div id="userId" class="user-id">ID: ...</div>
+        </div>
+      </div>
+
+      <div class="status-card">
+        <div class="status-label">เวลาเข้างานวันนี้</div>
+        <div id="checkInTime" class="time-badge">-</div>
+        <div class="gps-status">
+          <i class="fas fa-satellite-dish"></i>
+          <span id="gpsStatus">กำลังค้นหาสัญญาณ GPS...</span>
+        </div>
+      </div>
+
+      <div class="content">
+        <button id="btnCheckIn" class="action-btn btn-in" onclick="submitAction('เข้างาน')">
+          <i class="fas fa-map-marker-alt"></i> ลงเวลาเข้างาน
+        </button>
+
+        <div class="grid-btns">
+          <button id="btnBreak" class="action-btn btn-break" onclick="submitAction('พักเบรค')">
+            <i class="fas fa-coffee"></i> พักเบรค
+          </button>
+          <button id="btnResume" class="action-btn btn-resume" onclick="submitAction('กลับจากพัก')">
+            <i class="fas fa-briefcase"></i> กลับทำงาน
+          </button>
+        </div>
+
+        <button id="btnCheckOut" class="action-btn btn-out" onclick="submitAction('ออกงาน')">
+          <i class="fas fa-sign-out-alt"></i> ลงเวลาออกงาน
+        </button>
+      </div>
+    </div>
+
   </div>
 
   <script>
-    // ⚠️ แก้ไข 2 จุดนี้ให้เป็นของคุณ ⚠️
-    const LIFF_ID = "2008786300-Q5yjRgLC"; 
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwPeSMBnkBvGRkbuymmKeJX-WHQrgEvgcBzlw82lhQ_WO49jqzJY2n35pnXxjB1V5Ez1w/exec"; 
+    // ============================================
+    // ⚠️ ส่วนที่ต้องแก้ไข (IMPORTANT CONFIG)
+    // ============================================
+    const LIFF_ID = "2008786300-Q5yjRgLC"; // เช่น 1657xxxx-xxxxxx
+    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbzZAtFLryMu-4JPqaFUYDVcTCTqRrAslgkjmXxLG4cujoRN9-yo3yqvNWTRiz5gKNQvUA/exec"; // เช่น https://script.google.com/macros/s/xxxx/exec
+    // ============================================
 
-    // ตัวแปรเก็บ User ID
-    let lineProfile = {};
+    let CURRENT_LINE_USER_ID = null;
+    let LINE_PROFILE = null;
+    let CURRENT_EMP_ID = null;
+    let GPS_LAT = null;
+    let GPS_LNG = null;
 
-    async function main() {
+    window.onload = async function() {
+      await initLIFF();
+    };
+
+    async function initLIFF() {
       try {
         await liff.init({ liffId: LIFF_ID });
+        
         if (!liff.isLoggedIn()) {
           liff.login();
           return;
         }
-        
-        // ดึงข้อมูลโปรไฟล์ทันที
-        const profile = await liff.getProfile();
-        lineProfile = profile;
 
-        // แสดงผลหน้าจอ
-        document.getElementById('status').classList.add('hidden');
-        document.getElementById('profile').classList.remove('hidden');
-        document.getElementById('pictureUrl').src = profile.pictureUrl;
-        document.getElementById('displayName').innerText = profile.displayName;
+        // 1. ดึงข้อมูล Profile จาก LINE
+        const profile = await liff.getProfile();
+        CURRENT_LINE_USER_ID = profile.userId;
+        LINE_PROFILE = profile;
+
+        console.log("LINE ID:", CURRENT_LINE_USER_ID);
+
+        // 2. เริ่มจับ GPS ทันที
+        startGPSWatch();
+
+        // 3. ยิงไปถาม Server ว่า User นี้คือใคร
+        checkUserStatus();
 
       } catch (err) {
-        document.getElementById('status').innerText = "Error: " + err;
+        showLoading(false);
+        showModal("Error", "LIFF Init Failed: " + err + "\n(กรุณาตรวจสอบ LIFF ID)");
       }
     }
 
-    function sendData(action) {
-      if (!navigator.geolocation) {
-        alert("อุปกรณ์ไม่รองรับ GPS");
-        return;
-      }
+    function checkUserStatus() {
+      showLoading(true, "กำลังตรวจสอบข้อมูล...");
 
-      document.getElementById('status').innerText = "กำลังระบุพิกัด...";
-      document.getElementById('status').classList.remove('hidden');
-
-      navigator.geolocation.getCurrentPosition(position => {
-        const payload = {
-            userId: lineProfile.userId, // ส่ง ID อัตโนมัติ
-            displayName: lineProfile.displayName,
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            action: action
-        };
-
-        submitToGoogleSheet(payload);
+      // ใช้ fetch แบบ POST ส่ง JSON แทน google.script.run
+      fetch(GAS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ใช้ text/plain เพื่อเลี่ยง CORS preflight ในบางกรณี
+        body: JSON.stringify({ 
+          action: 'check_user', 
+          lineUserId: CURRENT_LINE_USER_ID 
+        })
+      })
+      .then(response => response.json())
+      .then(res => {
+        showLoading(false);
+        if (res.status === 'success') {
+          // เจอข้อมูลพนักงาน -> ไปหน้า Dashboard
+          setupDashboard(res);
+        } else if (res.status === 'new_user') {
+          // ไม่เจอ -> ไปหน้าลงทะเบียน
+          setupRegisterPage();
+        } else {
+          showModal("แจ้งเตือน", res.message);
+        }
+      })
+      .catch(err => {
+        showLoading(false);
+        showModal("Connection Error", "ไม่สามารถติดต่อ Server ได้\n" + err);
       });
     }
 
-    function submitToGoogleSheet(data) {
-        document.getElementById('status').innerText = "กำลังบันทึก...";
-        
-        // ใช้ fetch แทน google.script.run
-        fetch(GAS_URL, {
-            method: 'POST',
-            mode: 'no-cors', // สำคัญ: เพื่อให้ยิงข้ามโดเมนได้โดยไม่ติด Error แต่จะอ่าน Response ไม่ได้ (Blind Request)
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(() => {
-            // เนื่องจาก no-cors เราจะสรุปว่าส่งสำเร็จถ้าไม่ error
-            alert("บันทึกข้อมูลเรียบร้อย!");
-            liff.closeWindow();
-        })
-        .catch(err => {
-            alert("เกิดข้อผิดพลาด: " + err);
-        });
+    function setupRegisterPage() {
+      document.getElementById('regisProfileImg').src = LINE_PROFILE.pictureUrl || "https://via.placeholder.com/60";
+      document.getElementById('regisDisplayName').innerText = LINE_PROFILE.displayName;
+      showPage('registerPage');
     }
 
-    main();
+    function handleRegisterMap() {
+      const empId = document.getElementById('empIdInput').value.trim();
+      if (!empId) { showModal("แจ้งเตือน", "กรุณากรอกรหัสพนักงาน"); return; }
+
+      showLoading(true, "กำลังผูกบัญชี...");
+
+      fetch(GAS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ 
+          action: 'register_mapping', 
+          empId: empId, 
+          lineUserId: CURRENT_LINE_USER_ID,
+          displayName: LINE_PROFILE.displayName,
+          pictureUrl: LINE_PROFILE.pictureUrl
+        })
+      })
+      .then(response => response.json())
+      .then(res => {
+        showLoading(false);
+        if (res.status === 'success') {
+          showModal("สำเร็จ", "ผูกบัญชีเรียบร้อย ยินดีต้อนรับครับ!", 'alert', () => {
+             setupDashboard(res);
+          });
+        } else {
+          showModal("ล้มเหลว", res.message);
+        }
+      })
+      .catch(err => {
+        showLoading(false);
+        showModal("Error", "ลงทะเบียนไม่สำเร็จ: " + err);
+      });
+    }
+
+    function setupDashboard(res) {
+      CURRENT_EMP_ID = res.data.id;
+      
+      document.getElementById('userName').innerText = res.data.name;
+      document.getElementById('userId').innerText = "ID: " + res.data.id;
+      document.getElementById('userPhoto').src = res.data.photoUrl;
+      
+      // อัปเดตเวลาเข้างาน (ถ้ามี)
+      const checkInText = res.todayCheckIn !== "-" ? res.todayCheckIn + " น." : "ยังไม่ลงเวลา";
+      document.getElementById('checkInTime').innerText = checkInText;
+
+      showPage('dashboardPage');
+    }
+
+    function submitAction(actionType) {
+      // Logic การลงเวลา
+      if (actionType === 'ออกงาน') {
+        showModal("ยืนยัน", "ต้องการลงเวลาออกงานใช่ไหม?", "confirm", () => {
+           let workDesc = prompt("ระบุงานที่ทำวันนี้ (สั้นๆ):", "") || "-";
+           performSubmit(actionType, workDesc);
+        });
+        return; 
+      }
+      performSubmit(actionType, "-");
+    }
+
+    function performSubmit(actionType, workDesc) {
+      if (!GPS_LAT || !GPS_LNG) {
+        showModal("เตือน", "กำลังค้นหาสัญญาณ GPS...\nกรุณารอสักครู่แล้วกดใหม่");
+        return;
+      }
+
+      showLoading(true, "กำลังบันทึกข้อมูล...");
+
+      fetch(GAS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'checkin',
+          empId: CURRENT_EMP_ID,
+          lat: GPS_LAT,
+          lng: GPS_LNG,
+          actionType: actionType,
+          workDescription: workDesc
+        })
+      })
+      .then(response => response.json())
+      .then(res => {
+        showLoading(false);
+        if (res.status === 'success') {
+          if (actionType === 'เข้างาน') { document.getElementById('checkInTime').innerText = res.time + " น."; }
+          showModal("✅ สำเร็จ", res.message, 'alert', () => {
+            if (liff.isInClient()) liff.closeWindow();
+          });
+        } else {
+          showModal("❌ ผิดพลาด", res.message);
+        }
+      })
+      .catch(err => {
+        showLoading(false);
+        showModal("Error", "เกิดข้อผิดพลาด: " + err);
+      });
+    }
+
+    // --- UTILITIES ---
+
+    function startGPSWatch() {
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+          (position) => {
+            GPS_LAT = position.coords.latitude;
+            GPS_LNG = position.coords.longitude;
+            const acc = position.coords.accuracy;
+            const gpsText = document.getElementById('gpsStatus');
+            if (acc <= 50) { gpsText.innerHTML = `<span style="color:var(--success)">GPS สัญญาณดี (±${Math.round(acc)}ม.)</span>`; } 
+            else { gpsText.innerHTML = `<span style="color:var(--warning)">GPS พอใช้ (±${Math.round(acc)}ม.)</span>`; }
+          },
+          (err) => { document.getElementById('gpsStatus').innerText = "❌ ไม่พบสัญญาณ GPS"; },
+          { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
+        );
+      } else { document.getElementById('gpsStatus').innerText = "อุปกรณ์ไม่รองรับ GPS"; }
+    }
+
+    function logout() {
+       location.reload(); 
+       // ในระบบ LIFF การ Logout มักจะแค่ Reload เพื่อเช็คสถานะใหม่
+       // เพราะเราผูกกับ LINE ID ถาวร ถ้าจะเปลี่ยน User ต้อง Logout ที่แอป LINE
+    }
+
+    function showPage(pageId) {
+      document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active-page'));
+      document.getElementById(pageId).classList.add('active-page');
+    }
+
+    function showLoading(show, text) {
+      const loader = document.getElementById('loadingScreen');
+      if (text) document.getElementById('loadingText').innerText = text;
+      if (show) loader.classList.remove('hidden');
+      else loader.classList.add('hidden');
+    }
+
+    function showModal(title, text, type = 'alert', onConfirm = null) {
+      const modal = document.getElementById('customModal');
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalDesc').innerText = text;
+      
+      const btnContainer = document.getElementById('modalBtns');
+      btnContainer.innerHTML = ''; 
+
+      if (type === 'confirm') {
+        const btnYes = document.createElement('button');
+        btnYes.className = 'modal-btn btn-confirm';
+        btnYes.innerText = 'ยืนยัน';
+        btnYes.onclick = () => { closeModal(); if(onConfirm) onConfirm(); };
+        
+        const btnNo = document.createElement('button');
+        btnNo.className = 'modal-btn btn-cancel';
+        btnNo.innerText = 'ยกเลิก';
+        btnNo.onclick = () => closeModal();
+
+        btnContainer.appendChild(btnNo);
+        btnContainer.appendChild(btnYes);
+      } else {
+        const btnOk = document.createElement('button');
+        btnOk.className = 'modal-btn btn-confirm';
+        btnOk.innerText = 'ตกลง';
+        btnOk.onclick = () => { closeModal(); if(onConfirm) onConfirm(); };
+        btnContainer.appendChild(btnOk);
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() { document.getElementById('customModal').classList.add('hidden'); }
+
   </script>
 </body>
-
 </html>
