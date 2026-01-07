@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoHR Check-in</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+      /* ใส่ CSS ของคุณตามเดิมที่นี่ได้เลยครับ */
+      body { font-family: sans-serif; padding: 20px; text-align: center; }
+      .btn { padding: 15px; width: 100%; margin: 10px 0; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; }
+      .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h2>ระบบลงเวลาทำงาน</h2>
+  <div id="status">กำลังโหลดข้อมูล...</div>
+  <div id="profile" class="hidden">
+      <img id="pictureUrl" src="" style="width:100px; border-radius:50%;">
+      <p>สวัสดี: <span id="displayName"></span></p>
+      
+      <button class="btn" onclick="sendData('เข้างาน')">เข้างาน</button>
+      <button class="btn" onclick="sendData('ออกงาน')">ออกงาน</button>
+  </div>
+
+  <script>
+    // ⚠️ แก้ไข 2 จุดนี้ให้เป็นของคุณ ⚠️
+    const LIFF_ID = "YOUR_LIFF_ID_HERE"; 
+    const GAS_URL = "YOUR_GOOGLE_SCRIPT_WEB_APP_URL_HERE"; 
+
+    // ตัวแปรเก็บ User ID
+    let lineProfile = {};
+
+    async function main() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        
+        // ดึงข้อมูลโปรไฟล์ทันที
+        const profile = await liff.getProfile();
+        lineProfile = profile;
+
+        // แสดงผลหน้าจอ
+        document.getElementById('status').classList.add('hidden');
+        document.getElementById('profile').classList.remove('hidden');
+        document.getElementById('pictureUrl').src = profile.pictureUrl;
+        document.getElementById('displayName').innerText = profile.displayName;
+
+      } catch (err) {
+        document.getElementById('status').innerText = "Error: " + err;
+      }
+    }
+
+    function sendData(action) {
+      if (!navigator.geolocation) {
+        alert("อุปกรณ์ไม่รองรับ GPS");
+        return;
+      }
+
+      document.getElementById('status').innerText = "กำลังระบุพิกัด...";
+      document.getElementById('status').classList.remove('hidden');
+
+      navigator.geolocation.getCurrentPosition(position => {
+        const payload = {
+            userId: lineProfile.userId, // ส่ง ID อัตโนมัติ
+            displayName: lineProfile.displayName,
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            action: action
+        };
+
+        submitToGoogleSheet(payload);
+      });
+    }
+
+    function submitToGoogleSheet(data) {
+        document.getElementById('status').innerText = "กำลังบันทึก...";
+        
+        // ใช้ fetch แทน google.script.run
+        fetch(GAS_URL, {
+            method: 'POST',
+            mode: 'no-cors', // สำคัญ: เพื่อให้ยิงข้ามโดเมนได้โดยไม่ติด Error แต่จะอ่าน Response ไม่ได้ (Blind Request)
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(() => {
+            // เนื่องจาก no-cors เราจะสรุปว่าส่งสำเร็จถ้าไม่ error
+            alert("บันทึกข้อมูลเรียบร้อย!");
+            liff.closeWindow();
+        })
+        .catch(err => {
+            alert("เกิดข้อผิดพลาด: " + err);
+        });
+    }
+
+    main();
+  </script>
+</body>
+</html>
