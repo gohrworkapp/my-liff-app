@@ -43,13 +43,6 @@
       position: relative;
     }
 
-    /* --- DASHBOARD (แสดงผลทันที) --- */
-    #dashboardPage { 
-      display: flex; /* เปลี่ยนเป็น Flex เลยไม่ต้องซ่อน */
-      flex-direction: column; 
-      height: 100%; 
-    }
-
     .header {
       background: var(--primary);
       padding: 30px 20px 60px;
@@ -58,10 +51,9 @@
       text-align: center;
       color: white;
       position: relative;
-      transition: height 0.3s;
     }
 
-    /* Skeleton Loading Effect (วิบวับตอนโหลด) */
+    /* Skeleton Loading Effect */
     .skeleton {
       animation: skeleton-loading 1s linear infinite alternate;
       opacity: 0.7;
@@ -130,7 +122,6 @@
     }
     .action-btn:active { transform: scale(0.98); }
 
-    /* ปุ่มตอนยังโหลดข้อมูลไม่เสร็จ */
     .btn-disabled {
       background-color: var(--disabled) !important;
       cursor: not-allowed;
@@ -225,22 +216,25 @@
 
   <script>
     // ==========================================
-    // ⚠️ CONFIGURATION
+    // ⚠️ CONFIGURATION (สำคัญมาก!)
     // ==========================================
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzxcN2Vf5EDfqlaTETWk-LgYCYqBGUuiAk3vPdW0eJ0w-MFAf7KySFGnXz23WJOz5s1nA/exec"; // ใส่ URL เดิมของคุณ
+    // 1. นำ URL ที่ได้จากการ Deploy รอบล่าสุดมาวางตรงนี้
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzec_le75Ur9G0A-nV0UZtQoQrIKTJLIe8lZ-wu5Ajks4PEQi1jwZYei0K3iIcmTSPIbg/exec"; 
+    
+    // 2. ใส่ LIFF ID เดิมของคุณ
     const LIFF_ID = "2008786300-Zxf736Ka"; 
 
     // Global Vars
     let CURRENT_EMP_ID = null;
     let GPS_LAT = null;
     let GPS_LNG = null;
-    let IS_DATA_LOADED = false; // ตัวแปรเช็คว่าข้อมูลมาครบหรือยัง
+    let IS_DATA_LOADED = false;
 
     // ==========================================
     // 1. INITIALIZE (ทำงานทันทีที่เปิด)
     // ==========================================
     window.onload = async function() {
-      // 1. เริ่มหา GPS ทันที (ไม่ต้องรอ Login)
+      // เริ่มหา GPS ทันที
       startGPSWatch();
 
       try {
@@ -250,17 +244,17 @@
             const profile = await liff.getProfile();
             console.log("UserID:", profile.userId);
             
-            // 2. เรียกข้อมูล Backend แบบ Async (ไม่ Block หน้าจอ)
+            // ดึงข้อมูล Backend โดยใช้ LineUserID
             fetchUserData(profile.userId);
             
-            // ใส่รูปโปรไฟล์จาก LINE ไว้ก่อนเลย (User จะได้รู้สึกว่าโหลดเสร็จแล้วส่วนหนึ่ง)
+            // แสดงรูปจาก Line ระหว่างรอรูปจริงจากระบบ
             document.getElementById('userPhoto').src = profile.pictureUrl;
         } else {
             liff.login(); 
         }
       } catch (err) { 
         console.error("Init Error:", err);
-        showModal("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อ LINE ได้");
+        showModal("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อ LINE LIFF ได้");
       }
     };
 
@@ -268,7 +262,7 @@
     // 2. FETCH DATA (ดึงข้อมูลพนักงาน)
     // ==========================================
     async function fetchUserData(lineUserId) {
-        // ยิงไปถาม Backend
+        // ยิงไปถาม Backend ด้วย Action: login_by_line_id
         const payload = { action: 'login_by_line_id', lineUserId: lineUserId };
         
         try {
@@ -277,19 +271,20 @@
             if (res.status === 'success') {
                 // ข้อมูลมาแล้ว! อัปเดตหน้าจอ
                 updateDashboardUI(res.data, res.todayCheckIn);
+            } else if (res.status === 'not_found') {
+                // กรณีไม่พบพนักงานในระบบ
+                stopLoadingUI("ไม่พบข้อมูล");
+                showModal("แจ้งเตือน", "คุณยังไม่ได้ลงทะเบียน\nกรุณาปิดหน้านี้ แล้วพิมพ์ 'ลงทะเบียน' ในแชทไลน์ก่อนครับ");
             } else {
-                // กรณีไม่พบพนักงาน (อาจต้องแจ้ง Admin)
-                document.getElementById('userName').classList.remove('skeleton');
-                document.getElementById('userName').innerText = "ไม่พบข้อมูลพนักงาน";
-                document.getElementById('userId').innerText = "กรุณาติดต่อ Admin";
-                showModal("แจ้งเตือน", "บัญชี LINE นี้ยังไม่ได้ลงทะเบียนในระบบ");
+                stopLoadingUI("ผิดพลาด");
+                showModal("แจ้งเตือน", res.message || "เกิดข้อผิดพลาด");
             }
         } catch (e) {
+            stopLoadingUI("Connection Error");
             showModal("Error", "เชื่อมต่อ Server ไม่ได้");
         }
     }
 
-    // ฟังก์ชันอัปเดตหน้าจอเมื่อข้อมูลมาถึง
     function updateDashboardUI(userData, checkInTime) {
         CURRENT_EMP_ID = userData.id;
         IS_DATA_LOADED = true;
@@ -299,7 +294,7 @@
         const idEl = document.getElementById('userId');
         
         nameEl.classList.remove('skeleton');
-        nameEl.style.width = 'auto'; // คืนค่าความกว้าง
+        nameEl.style.width = 'auto';
         nameEl.style.backgroundColor = 'transparent';
         nameEl.innerText = userData.name;
 
@@ -307,10 +302,24 @@
         idEl.style.width = 'auto';
         idEl.innerText = "รหัส: " + userData.id;
 
+        // ถ้ามีรูปในระบบ ให้ใช้รูปนั้น ถ้าไม่มีใช้รูปจาก Line (ซึ่งใส่ไว้แล้ว)
+        if (userData.photoUrl && userData.photoUrl !== "https://via.placeholder.com/150") {
+             document.getElementById('userPhoto').src = userData.photoUrl;
+        }
+
         document.getElementById('checkInTime').innerText = checkInTime !== "-" ? checkInTime + " น." : "ยังไม่ลงเวลา";
 
         // ✅ ปลดล็อกปุ่มให้กดได้
         enableButtons();
+    }
+
+    function stopLoadingUI(msg) {
+        const nameEl = document.getElementById('userName');
+        nameEl.classList.remove('skeleton');
+        nameEl.style.width = 'auto';
+        nameEl.innerText = msg;
+        document.getElementById('userId').classList.remove('skeleton');
+        document.getElementById('userId').innerText = "-";
     }
 
     function enableButtons() {
@@ -322,11 +331,9 @@
     // 3. ACTION HANDLERS
     // ==========================================
     function submitAction(actionType) {
-      // ป้องกันการกดถ้าข้อมูลยังไม่มา
       if (!IS_DATA_LOADED || !CURRENT_EMP_ID) return;
 
       if (actionType === 'ออกงาน') {
-        // ใช้ Prompt ง่ายๆ ไปก่อน
         let workDesc = prompt("ระบุงานที่ทำวันนี้ (สั้นๆ):", "") || "-";
         performSubmit(actionType, workDesc);
         return; 
@@ -336,7 +343,7 @@
 
     function performSubmit(actionType, workDesc) {
       if (!GPS_LAT || !GPS_LNG) {
-        showModal("กำลังหาพิกัด", "กรุณารอสักครู่ แล้วกดใหม่อีกครั้ง");
+        showModal("กำลังหาพิกัด", "กรุณารอสักครู่ ระบบกำลังจับสัญญาณ GPS...");
         // เร่งหา GPS อีกรอบ
         navigator.geolocation.getCurrentPosition(
              (pos) => { GPS_LAT = pos.coords.latitude; GPS_LNG = pos.coords.longitude; },
@@ -350,7 +357,7 @@
 
       const payload = { 
           action: 'submit_checkin',
-          actualAction: actionType, // ส่งค่า action จริง
+          actualAction: actionType, 
           empId: CURRENT_EMP_ID, 
           lat: GPS_LAT, 
           lng: GPS_LNG, 
@@ -362,6 +369,8 @@
           if (res.status === 'success') {
               if (actionType === 'เข้างาน') { document.getElementById('checkInTime').innerText = res.time + " น."; }
               showModal("✅ สำเร็จ", res.message);
+              // ปิด LIFF อัตโนมัติหลัง 2 วิ (Optional)
+              // setTimeout(() => liff.closeWindow(), 2000);
           } else {
               showModal("แจ้งเตือน", res.message);
           }
@@ -383,7 +392,7 @@
         try {
             const response = await fetch(GAS_API_URL, {
                 method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                headers: { "Content-Type": "text/plain;charset=utf-8" }, // ใช้ text/plain เพื่อเลี่ยง CORS ของ Google
                 body: JSON.stringify(payload)
             });
             return await response.json();
@@ -423,7 +432,3 @@
   </script>
 </body>
 </html>
-
-
-
-
