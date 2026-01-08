@@ -6,14 +6,10 @@
   <title>GoHR - ระบบลงเวลา</title>
   
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
-    /* ==============================
-       CSS STYLES (FULL)
-       ============================== */
     :root {
       --primary: #0D47A1;
       --success: #1B5E20;
@@ -22,6 +18,7 @@
       --danger: #B71C1C;
       --text: #37474F;
       --bg: #F5F7FA;
+      --disabled: #B0BEC5;
     }
 
     body {
@@ -46,40 +43,12 @@
       position: relative;
     }
 
-    /* --- LOGIN PAGE --- */
-    #loginPage {
-      padding: 40px 30px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      height: 100vh;
-      box-sizing: border-box;
-      background: white;
-      z-index: 10;
+    /* --- DASHBOARD (แสดงผลทันที) --- */
+    #dashboardPage { 
+      display: flex; /* เปลี่ยนเป็น Flex เลยไม่ต้องซ่อน */
+      flex-direction: column; 
+      height: 100%; 
     }
-
-    .logo-area { text-align: center; margin-bottom: 40px; }
-    .logo-icon { font-size: 3.5rem; color: var(--primary); margin-bottom: 15px; }
-    
-    .input-box {
-      width: 100%;
-      max-width: 280px;
-      margin: 0 auto 20px auto;
-      padding: 16px;
-      border: 2px solid #ECEFF1;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      font-family: 'Kanit';
-      text-align: center;
-      background: #FAFAFA;
-      transition: 0.3s;
-      outline: none;
-      display: block;
-    }
-    .input-box:focus { border-color: var(--primary); background: white; }
-
-    /* --- DASHBOARD PAGE --- */
-    #dashboardPage { display: none; flex-direction: column; height: 100%; }
 
     .header {
       background: var(--primary);
@@ -89,17 +58,17 @@
       text-align: center;
       color: white;
       position: relative;
+      transition: height 0.3s;
     }
 
-    .logout-btn {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: rgba(255,255,255,0.15);
-      padding: 6px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.8rem;
+    /* Skeleton Loading Effect (วิบวับตอนโหลด) */
+    .skeleton {
+      animation: skeleton-loading 1s linear infinite alternate;
+      opacity: 0.7;
+    }
+    @keyframes skeleton-loading {
+      0% { background-color: rgba(255,255,255,0.2); }
+      100% { background-color: rgba(255,255,255,0.5); }
     }
 
     .profile-img {
@@ -112,10 +81,9 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
-    .user-name { font-size: 1.4rem; font-weight: 500; margin: 10px 0 0; }
-    .user-id { font-size: 0.9rem; opacity: 0.8; font-weight: 300; }
+    .user-name { font-size: 1.4rem; font-weight: 500; margin: 10px 0 0; min-height: 25px; }
+    .user-id { font-size: 0.9rem; opacity: 0.8; font-weight: 300; margin-top: 5px; min-height: 20px;}
 
-    /* Status Card */
     .status-card {
       background: white;
       margin: -40px 20px 20px;
@@ -123,7 +91,6 @@
       border-radius: 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
       text-align: center;
-      position: relative;
     }
     .status-label { font-size: 0.9rem; color: #90A4AE; margin-bottom: 5px; }
     .time-badge {
@@ -131,6 +98,7 @@
       font-weight: 600;
       font-size: 1.5rem;
       margin-bottom: 15px;
+      min-height: 30px;
     }
     .gps-status {
       font-size: 0.85rem;
@@ -141,7 +109,6 @@
       color: #78909C;
     }
 
-    /* Buttons */
     .content { padding: 10px 25px 40px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; }
     
     .action-btn {
@@ -159,9 +126,17 @@
       justify-content: center;
       gap: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: transform 0.1s;
+      transition: all 0.2s;
     }
     .action-btn:active { transform: scale(0.98); }
+
+    /* ปุ่มตอนยังโหลดข้อมูลไม่เสร็จ */
+    .btn-disabled {
+      background-color: var(--disabled) !important;
+      cursor: not-allowed;
+      pointer-events: none;
+      box-shadow: none;
+    }
 
     .btn-in { background: var(--success); }
     .btn-break { background: var(--warning); font-size: 1rem; }
@@ -170,28 +145,7 @@
     
     .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
-    /* Loader & Modal */
-    .loader-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(255, 255, 255, 0.9);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      backdrop-filter: blur(2px);
-    }
-    .spinner {
-      width: 40px; height: 40px;
-      border: 4px solid #E0E0E0;
-      border-top: 4px solid var(--primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .hidden { display: none !important; }
-    .error-msg { color: var(--danger); font-size: 0.9rem; margin-top: 15px; text-align: center; }
-
+    /* Modal */
     .custom-modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.5);
@@ -202,98 +156,66 @@
       backdrop-filter: blur(3px);
     }
     .custom-modal-box {
-      background: white;
-      width: 85%;
-      max-width: 320px;
-      padding: 25px;
-      border-radius: 20px;
-      text-align: center;
+      background: white; width: 85%; max-width: 320px; padding: 25px;
+      border-radius: 20px; text-align: center;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    
-    .modal-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 10px; color: var(--text); }
-    .modal-desc { font-size: 1rem; color: #555; margin-bottom: 20px; line-height: 1.5; }
-    
-    .modal-btns { display: flex; gap: 10px; justify-content: center; }
+    .modal-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 10px; }
+    .modal-desc { font-size: 1rem; color: #555; margin-bottom: 20px; }
     .modal-btn {
-      flex: 1; padding: 12px; border: none; border-radius: 12px;
+      padding: 12px 24px; border: none; border-radius: 12px;
       font-family: 'Kanit'; font-size: 1rem; cursor: pointer;
+      background: var(--primary); color: white; width: 100%;
     }
-    .btn-confirm { background: var(--primary); color: white; }
-    .btn-cancel { background: #ECEFF1; color: #555; }
+    .hidden { display: none !important; }
+
   </style>
 </head>
 <body>
-
-  <div id="loadingScreen" class="loader-overlay hidden">
-    <div class="spinner"></div>
-    <p id="loadingText" style="margin-top: 15px; color: #555;">กำลังโหลด...</p>
-  </div>
 
   <div id="customModal" class="custom-modal-overlay hidden">
     <div class="custom-modal-box">
       <div id="modalTitle" class="modal-title">แจ้งเตือน</div>
       <div id="modalDesc" class="modal-desc">ข้อความ</div>
-      <div id="modalBtns" class="modal-btns"></div>
+      <button class="modal-btn" onclick="closeModal()">ตกลง</button>
     </div>
   </div>
 
   <div class="app-container">
     
-    <div id="loginPage">
-      <div class="logo-area">
-        <i class="fas fa-user-clock logo-icon"></i>
-        <h2 style="margin:0; color:var(--primary);">GoHR</h2>
-        <p style="color:#90A4AE;">ระบบลงเวลาทำงานผ่าน GPS</p>
-      </div>
-      
-      <input type="text" id="empIdInput" class="input-box" placeholder="กรอกรหัสพนักงานของคุณ" />
-      
-      <button class="action-btn" style="background:var(--primary); max-width: 280px; margin: 0 auto;" onclick="handleManualLogin()">
-        เข้าสู่ระบบ
-      </button>
-
-      <div id="loginError" class="error-msg"></div>
-    </div>
-
     <div id="dashboardPage">
       <div class="header">
-        <div class="logout-btn" onclick="logout()">
-          <i class="fas fa-power-off"></i> ออกจากระบบ
-        </div>
-        <img id="userPhoto" src="https://via.placeholder.com/100" class="profile-img">
+        <img id="userPhoto" src="https://via.placeholder.com/100?text=..." class="profile-img">
         <div class="user-info">
-          <h2 id="userName" class="user-name">...</h2>
-          <div id="userId" class="user-id">ID: ...</div>
+          <h2 id="userName" class="user-name skeleton" style="width: 150px; margin: 10px auto; border-radius: 5px;"></h2>
+          <div id="userId" class="user-id skeleton" style="width: 100px; margin: 5px auto; border-radius: 5px;"></div>
         </div>
       </div>
 
       <div class="status-card">
         <div class="status-label">เวลาเข้างานวันนี้</div>
-        <div id="checkInTime" class="time-badge">-</div>
+        <div id="checkInTime" class="time-badge">...</div>
         <div class="gps-status">
           <i class="fas fa-satellite-dish"></i>
-          <span id="gpsStatus">กำลังค้นหาสัญญาณ GPS...</span>
+          <span id="gpsStatus">กำลังค้นหาสัญญาณ...</span>
         </div>
       </div>
 
       <div class="content">
-        <button id="btnCheckIn" class="action-btn btn-in" onclick="submitAction('เข้างาน')">
+        <button id="btnCheckIn" class="action-btn btn-in btn-disabled" onclick="submitAction('เข้างาน')">
           <i class="fas fa-map-marker-alt"></i> ลงเวลาเข้างาน
         </button>
 
         <div class="grid-btns">
-          <button id="btnBreak" class="action-btn btn-break" onclick="submitAction('พักเบรค')">
+          <button id="btnBreak" class="action-btn btn-break btn-disabled" onclick="submitAction('พักเบรค')">
             <i class="fas fa-coffee"></i> พักเบรค
           </button>
-          <button id="btnResume" class="action-btn btn-resume" onclick="submitAction('กลับจากพัก')">
+          <button id="btnResume" class="action-btn btn-resume btn-disabled" onclick="submitAction('กลับจากพัก')">
             <i class="fas fa-briefcase"></i> กลับทำงาน
           </button>
         </div>
 
-        <button id="btnCheckOut" class="action-btn btn-out" onclick="submitAction('ออกงาน')">
+        <button id="btnCheckOut" class="action-btn btn-out btn-disabled" onclick="submitAction('ออกงาน')">
           <i class="fas fa-sign-out-alt"></i> ลงเวลาออกงาน
         </button>
       </div>
@@ -303,124 +225,174 @@
 
   <script>
     // ==========================================
-    // ⚠️ 1. ตั้งค่าระบบ (แก้ไขตรงนี้!)
+    // ⚠️ CONFIGURATION
     // ==========================================
-    // ใส่ URL ที่ได้จากการ Deploy Google Apps Script (Web App URL)
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz5Oi2YhYzFCq3V3MXWP_xfbmVBde_WYBVeiHnLqA0r7uRSGqlEcqXF16OYQ3gA54ymsQ/exec"; 
-    
-    // ใส่ LIFF ID ของคุณ
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxeKYSqQVjFh1t3NUGUozhyScw8oQn7G6010vJBIvTS3gK3tohN1qj5J6DYZXmHHYDZaw/exec"; // ใส่ URL เดิมของคุณ
     const LIFF_ID = "2008786300-Zxf736Ka"; 
 
-    // ==========================================
-    // 2. ตัวแปร Global
-    // ==========================================
+    // Global Vars
     let CURRENT_EMP_ID = null;
-    let LINE_USER_ID = null; // เก็บ Line ID ของ User
     let GPS_LAT = null;
     let GPS_LNG = null;
+    let IS_DATA_LOADED = false; // ตัวแปรเช็คว่าข้อมูลมาครบหรือยัง
 
     // ==========================================
-    // 3. เริ่มต้นระบบ (Initialize)
+    // 1. INITIALIZE (ทำงานทันทีที่เปิด)
     // ==========================================
     window.onload = async function() {
+      // 1. เริ่มหา GPS ทันที (ไม่ต้องรอ Login)
+      startGPSWatch();
+
       try {
         await liff.init({ liffId: LIFF_ID });
         
-        // 1. ตรวจสอบว่าเปิดใน LINE หรือไม่
         if (liff.isLoggedIn()) {
             const profile = await liff.getProfile();
-            LINE_USER_ID = profile.userId;
-            console.log("LINE User ID:", LINE_USER_ID);
+            console.log("UserID:", profile.userId);
+            
+            // 2. เรียกข้อมูล Backend แบบ Async (ไม่ Block หน้าจอ)
+            fetchUserData(profile.userId);
+            
+            // ใส่รูปโปรไฟล์จาก LINE ไว้ก่อนเลย (User จะได้รู้สึกว่าโหลดเสร็จแล้วส่วนหนึ่ง)
+            document.getElementById('userPhoto').src = profile.pictureUrl;
         } else {
-            // ถ้าไม่ได้ Login ให้ Login ก่อน (กรณีเปิดใน External Browser)
-            // liff.login(); 
-        }
-
-        startGPSWatch();
-
-        // 2. เช็คการ Login
-        // A. ลอง Login อัตโนมัติด้วย LINE User ID ก่อน (ถ้ามี)
-        if (LINE_USER_ID) {
-            handleAutoLoginByLineId(LINE_USER_ID);
-        } else {
-            // B. ถ้าไม่มี Line ID ให้เช็ค LocalStorage
-            const savedEmpId = localStorage.getItem('gohr_emp_id');
-            if (savedEmpId) {
-                document.getElementById('empIdInput').value = savedEmpId;
-                handleManualLogin();
-            }
+            liff.login(); 
         }
       } catch (err) { 
-        console.error("LIFF Init Error:", err);
-        // กรณี Error (เช่นเปิดในคอมแล้วไม่ได้ใส่ LIFF ID) ยังให้ทำงานต่อได้ถ้ามี LocalStorage
-        const savedEmpId = localStorage.getItem('gohr_emp_id');
-        if (savedEmpId) { document.getElementById('empIdInput').value = savedEmpId; handleManualLogin(); }
+        console.error("Init Error:", err);
+        showModal("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อ LINE ได้");
       }
     };
 
     // ==========================================
-    // 4. ฟังก์ชัน Login
+    // 2. FETCH DATA (ดึงข้อมูลพนักงาน)
     // ==========================================
-    
-    // แบบ A: Auto Login ด้วย Line ID
-    async function handleAutoLoginByLineId(uid) {
-        showLoading(true, "กำลังยืนยันตัวตน...");
-        const payload = { action: 'login_by_line_id', lineUserId: uid };
-        const res = await callBackend(payload);
+    async function fetchUserData(lineUserId) {
+        // ยิงไปถาม Backend
+        const payload = { action: 'login_by_line_id', lineUserId: lineUserId };
         
-        if (res.status === 'success') {
-            setupDashboard(res);
-        } else {
-            // ถ้าไม่เจอ Line ID ในระบบ -> ให้ User กรอกรหัสพนักงานเอง
-            showLoading(false);
-            // (ยังอยู่ที่หน้า Login ปกติ)
+        try {
+            const res = await callBackend(payload);
+            
+            if (res.status === 'success') {
+                // ข้อมูลมาแล้ว! อัปเดตหน้าจอ
+                updateDashboardUI(res.data, res.todayCheckIn);
+            } else {
+                // กรณีไม่พบพนักงาน (อาจต้องแจ้ง Admin)
+                document.getElementById('userName').classList.remove('skeleton');
+                document.getElementById('userName').innerText = "ไม่พบข้อมูลพนักงาน";
+                document.getElementById('userId').innerText = "กรุณาติดต่อ Admin";
+                showModal("แจ้งเตือน", "บัญชี LINE นี้ยังไม่ได้ลงทะเบียนในระบบ");
+            }
+        } catch (e) {
+            showModal("Error", "เชื่อมต่อ Server ไม่ได้");
         }
     }
 
-    // แบบ B: Manual Login ด้วยรหัสพนักงาน
-    async function handleManualLogin() {
-      const empId = document.getElementById('empIdInput').value.trim();
-      if (!empId) { showModal("แจ้งเตือน", "กรุณากรอกรหัสพนักงาน"); return; }
+    // ฟังก์ชันอัปเดตหน้าจอเมื่อข้อมูลมาถึง
+    function updateDashboardUI(userData, checkInTime) {
+        CURRENT_EMP_ID = userData.id;
+        IS_DATA_LOADED = true;
 
-      showLoading(true, "กำลังตรวจสอบข้อมูล...");
-      document.getElementById('loginError').innerText = "";
-      
-      // ส่งทั้ง รหัสพนักงาน และ Line User ID (เพื่อไปผูกกันที่หลังบ้าน)
-      const payload = { action: 'login_by_emp_id', empId: empId, lineUserId: LINE_USER_ID };
-      const res = await callBackend(payload);
+        // ลบ Effect โหลด และใส่ข้อมูลจริง
+        const nameEl = document.getElementById('userName');
+        const idEl = document.getElementById('userId');
+        
+        nameEl.classList.remove('skeleton');
+        nameEl.style.width = 'auto'; // คืนค่าความกว้าง
+        nameEl.style.backgroundColor = 'transparent';
+        nameEl.innerText = userData.name;
 
-      if (res.status === 'success') {
-          localStorage.setItem('gohr_emp_id', res.data.id); // จำรหัสไว้
-          setupDashboard(res);
-      } else {
-          showLoading(false);
-          localStorage.removeItem('gohr_emp_id');
-          showError(res.message);
+        idEl.classList.remove('skeleton');
+        idEl.style.width = 'auto';
+        idEl.innerText = "รหัส: " + userData.id;
+
+        document.getElementById('checkInTime').innerText = checkInTime !== "-" ? checkInTime + " น." : "ยังไม่ลงเวลา";
+
+        // ✅ ปลดล็อกปุ่มให้กดได้
+        enableButtons();
+    }
+
+    function enableButtons() {
+        const btns = document.querySelectorAll('.action-btn');
+        btns.forEach(btn => btn.classList.remove('btn-disabled'));
+    }
+
+    // ==========================================
+    // 3. ACTION HANDLERS
+    // ==========================================
+    function submitAction(actionType) {
+      // ป้องกันการกดถ้าข้อมูลยังไม่มา
+      if (!IS_DATA_LOADED || !CURRENT_EMP_ID) return;
+
+      if (actionType === 'ออกงาน') {
+        // ใช้ Prompt ง่ายๆ ไปก่อน
+        let workDesc = prompt("ระบุงานที่ทำวันนี้ (สั้นๆ):", "") || "-";
+        performSubmit(actionType, workDesc);
+        return; 
       }
+      performSubmit(actionType, "-");
     }
 
-    function setupDashboard(res) {
-        CURRENT_EMP_ID = res.data.id;
-        document.getElementById('userName').innerText = res.data.name;
-        document.getElementById('userId').innerText = "ID: " + res.data.id;
-        document.getElementById('userPhoto').src = res.data.photoUrl;
-        document.getElementById('checkInTime').innerText = res.todayCheckIn !== "-" ? res.todayCheckIn + " น." : "ยังไม่ลงเวลา";
+    function performSubmit(actionType, workDesc) {
+      if (!GPS_LAT || !GPS_LNG) {
+        showModal("กำลังหาพิกัด", "กรุณารอสักครู่ แล้วกดใหม่อีกครั้ง");
+        // เร่งหา GPS อีกรอบ
+        navigator.geolocation.getCurrentPosition(
+             (pos) => { GPS_LAT = pos.coords.latitude; GPS_LNG = pos.coords.longitude; },
+             null, { enableHighAccuracy: true, timeout: 5000 }
+        );
+        return;
+      }
 
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('dashboardPage').style.display = 'flex';
-        showLoading(false);
-    }
+      // Lock ปุ่มระหว่างส่งข้อมูล
+      disableButtonsTemp();
 
-    function logout() {
-      showModal("ยืนยัน", "ต้องการออกจากระบบหรือไม่?", "confirm", () => {
-        localStorage.removeItem('gohr_emp_id');
-        location.reload();
+      const payload = { 
+          action: 'submit_checkin',
+          actualAction: actionType, // ส่งค่า action จริง
+          empId: CURRENT_EMP_ID, 
+          lat: GPS_LAT, 
+          lng: GPS_LNG, 
+          workDescription: workDesc
+      };
+      
+      callBackend(payload).then(res => {
+          enableButtons(); // ปลดล็อกปุ่ม
+          if (res.status === 'success') {
+              if (actionType === 'เข้างาน') { document.getElementById('checkInTime').innerText = res.time + " น."; }
+              showModal("✅ สำเร็จ", res.message);
+          } else {
+              showModal("แจ้งเตือน", res.message);
+          }
       });
     }
 
+    function disableButtonsTemp() {
+        const btns = document.querySelectorAll('.action-btn');
+        btns.forEach(btn => {
+            btn.classList.add('btn-disabled');
+            if(btn.id === 'btnCheckIn') btn.innerText = "กำลังบันทึก...";
+        });
+    }
+
     // ==========================================
-    // 5. ระบบ GPS & การลงเวลา
+    // 4. UTILITIES
     // ==========================================
+    async function callBackend(payload) {
+        try {
+            const response = await fetch(GAS_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payload)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("API Error:", error);
+            return { status: 'error', message: error.message };
+        }
+    }
+
     function startGPSWatch() {
       if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
@@ -438,206 +410,16 @@
       } else { document.getElementById('gpsStatus').innerText = "เครื่องไม่รองรับ GPS"; }
     }
 
-    function submitAction(actionType) {
-      if (actionType === 'ออกงาน') {
-        showModal("ยืนยัน", "ต้องการลงเวลาออกงานใช่ไหม?", "confirm", () => {
-             // ใช้ prompt ธรรมดาไปก่อน หรือจะแก้เป็น Modal input ก็ได้
-             let workDesc = prompt("ระบุงานที่ทำวันนี้ (สั้นๆ):", "") || "-";
-             performSubmit(actionType, workDesc);
-        });
-        return; 
-      }
-      performSubmit(actionType, "-");
-    }
-
-    function performSubmit(actionType, workDesc) {
-      if (!GPS_LAT || !GPS_LNG) {
-        showLoading(true, "กำลังเร่งค้นหาพิกัด...");
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            GPS_LAT = position.coords.latitude;
-            GPS_LNG = position.coords.longitude;
-            // ได้พิกัดแล้ว เรียกซ้ำ
-            performSubmit(actionType, workDesc); 
-          },
-          (err) => { showLoading(false); showModal("ผิดพลาด", "ไม่พบพิกัด GPS กรุณาเปิด Location แล้วลองใหม่"); },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-        return;
-      }
-
-      showLoading(true, "กำลังบันทึกข้อมูล...");
-      
-      const payload = { 
-          action: 'submit_checkin',
-          empId: CURRENT_EMP_ID, 
-          lat: GPS_LAT, 
-          lng: GPS_LNG, 
-          action_type: actionType, // *แก้ชื่อ key ให้ตรงกับ backend: ในโค้ด JS backend รับเป็น 'action' แต่ frontend ส่ง actionType
-          // *หมายเหตุ: ใน backend ผมเขียนรับ data.action เป็น command router (เช่น submit_checkin)
-          // ดังนั้นต้องส่ง checkin_action แยกไปอีก key หรือปรับ backend
-          // เพื่อความง่าย ผมจะส่งไปใน key 'action' (checkin/checkout) แต่ backend router ใช้ key 'action' เหมือนกัน
-          // **แก้ไข:** Backend Router ใช้ `data.action` เพื่อแยก function
-          // ส่วน function `processLiffCheckIn` รับ `data.action` เป็น สถานะ (เข้างาน/ออกงาน)
-          // ดังนั้น -> ต้องแก้ Payload ให้ถูกต้องตาม Backend Structure
-      };
-      
-      // Override Payload ให้ตรงกับ Backend Router Structure
-      const apiPayload = {
-          action: 'submit_checkin', // Router Command
-          empId: CURRENT_EMP_ID,
-          lat: GPS_LAT,
-          lng: GPS_LNG,
-          action: actionType, // Backend logic จะทับ key นี้ (ซึ่งไม่ดี)
-          // ** วิธีแก้ที่ปลอดภัยที่สุดสำหรับโค้ดชุดนี้ **
-          // ส่ง key 'action' เป็น 'submit_checkin' เพื่อให้ Router ทำงาน
-          // และส่ง key 'action' อีกตัวไม่ได้ใน JSON เดียวกัน
-          // ดังนั้นเราต้องแก้ payload checkin ให้ส่ง type แยก
-          // แต่เนื่องจาก Backend `processLiffCheckIn` อ่านค่า `data.action`
-          // เราจึงต้อง Hack นิดหน่อย หรือ แก้ Backend
-          // **สรุป:** ผมจะแก้ function callBackend ให้จัดการเรื่องนี้ไม่ได้
-          // เราต้องส่ง payload แบบนี้:
-          // { action: 'submit_checkin', ...ข้อมูลอื่นๆ... } 
-          // และใน Backend `processLiffCheckIn` มันอ่าน `data.action`
-          // ซึ่งถ้าส่ง `action: 'submit_checkin'` ไป มันจะบันทึกคำว่า "submit_checkin" ลง sheet แทนคำว่า "เข้างาน"
-          
-          // **ทางออก:** ใน frontend นี้ ผมจะเปลี่ยน key เป็น `real_action` 
-          // และขอให้คุณแก้ Backend function `processLiffCheckIn` บรรทัดเดียว
-          // หรือ... ผมจะส่งค่า action เป็น "เข้างาน" ไปเลย แต่ใน Backend Router ต้องเช็คดีๆ
-          // **OK วิธีที่ง่ายที่สุดและไม่ต้องแก้ Backend:** // Backend Router เช็ค `data.action === 'submit_checkin'`
-          // ดังนั้น Payload ต้องเป็น `action: 'submit_checkin'`
-          // แล้วเราเพิ่ม key ใหม่ชื่อ `checkInType: 'เข้างาน'`
-          // (แต่นั่นต้องแก้ Backend)
-          
-          // เอาล่ะ เพื่อให้ Copy-Paste แล้วใช้ได้เลยกับ Backend ที่ให้ไปตะกี้
-          // Backend ที่ให้ไป: `if (data.action === 'submit_checkin')`
-          // และ `function processLiffCheckIn(data) { const action = data.action; ... }`
-          // มันจะชนกันครับ! ถ้าส่ง submit_checkin ไป มันจะบันทึกคำว่า submit_checkin
-          
-          // **ขออภัยครับ** ผมต้องให้คุณแก้โค้ด JS ในหน้านี้ เพื่อส่งค่าให้ backend เข้าใจ
-          // Payload จะส่ง: { action: 'submit_checkin', checkInType: actionType, ... }
-          // *แต่เนื่องจากคุณไม่อยากแก้ Backend แล้ว*
-          // ผมจะใช้วิธี ส่ง action เป็น 'submit_checkin' และ workDescription ใส่ type ไปด้วย (ไม่ใช่ทางแก้ที่ดีที่สุดแต่เวิร์คสุดโดยไม่ต้องแก้ backend)
-          
-          // **แต่เดี๋ยวก่อน!** กลับไปดู Backend Router:
-          // `else if (data.action === 'submit_checkin') { result = processLiffCheckIn(data); }`
-          // และ `processLiffCheckIn` ใช้ `const action = data.action`
-          // สรุปคือ: Backend จะบันทึกคำว่า "submit_checkin" ลง Sheet แน่นอน ถ้าไม่แก้
-          
-          // **ดังนั้น ผมขออนุญาตแก้ Payload ในหน้านี้ให้ฉลาดขึ้น**
-          // โดยเราจะส่ง `action: 'submit_checkin'`
-          // และส่ง `userAction: actionType` ('เข้างาน')
-          // *และคุณต้องไปแก้ Backend บรรทัดเดียวครับ* (มันจำเป็นจริงๆ ไม่งั้นบันทึกผิด)
-          // *บรรทัดที่:* `const action = data.action;` ใน `processLiffCheckIn`
-          // *แก้เป็น:* `const action = data.userAction || data.action;`
-          
-          // **แต่ถ้าคุณยืนยันไม่แก้ Backend**
-          // ผมจะทำท่านี้: ส่ง `action: actionType` (เช่น 'เข้างาน')
-          // แต่ Backend Router มันดักแค่ `submit_checkin`
-          // ดังนั้น Router จะไม่ทำงาน...
-          
-          // **สรุป:** ยอมรับความจริงครับ "ต้องแก้ Backend นิดนึง" หรือ "เพิ่ม case ใน Router"
-          // ใน Backend ที่ผมให้ไปล่าสุด ผมเขียน Router ไว้ว่า:
-          // `else if (data.action === 'submit_checkin')`
-          // ดังนั้น Frontend **ต้อง** ส่ง `submit_checkin`
-          
-          // งั้นผมจะเขียน Code Frontend นี้โดยสมมติว่าคุณจะไปแก้ Backend (บรรทัดเดียว) 
-          // หรือ ถ้าไม่อยากแก้ Backend เลย ผมต้องใช้ท่าพิสดารคือเปลี่ยน Router ใน Backend
-          
-          // **เอาแบบนี้ครับ** เพื่อให้จบในไฟล์นี้ไฟล์เดียว (Frontend)
-          // ผมจะส่ง Payload ปกติ แต่ใน Backend Function `processLiffCheckIn` 
-          // **มันรับค่าจาก data**
-          // ดังนั้นผมจะส่ง:
-          empId: CURRENT_EMP_ID,
-          lat: GPS_LAT,
-          lng: GPS_LNG,
-          workDescription: workDesc,
-          // ส่วน action ส่งไป 2 ตัว
-          action: 'submit_checkin', // เพื่อผ่าน Router
-          actualAction: actionType  // เพื่อเอาไปใช้ (ต้องแก้ backend ให้รับตัวนี้)
-      };
-
-      // ยิง API
-      callBackend(apiPayload).then(res => {
-          showLoading(false);
-          if (res.status === 'success') {
-              if (actionType === 'เข้างาน') { document.getElementById('checkInTime').innerText = res.time + " น."; }
-              showSuccessModal(res.message, true);
-          } else {
-              showModal("แจ้งเตือน", res.message);
-          }
-      });
-    }
-
-    // ==========================================
-    // 6. API CALLER (หัวใจสำคัญของการย้ายโฮสต์)
-    // ==========================================
-    async function callBackend(payload) {
-        try {
-            // ใช้ fetch แทน google.script.run
-            const response = await fetch(GAS_API_URL, {
-                method: "POST",
-                // สำคัญ: Apps Script Web App มีปัญหากับ CORS Preflight
-                // เทคนิคคือใช้ text/plain เพื่อไม่ให้ Browser ยิง OPTIONS request
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payload)
-            });
-            return await response.json();
-        } catch (error) {
-            console.error("API Error:", error);
-            return { status: 'error', message: "เชื่อมต่อ Server ไม่ได้: " + error.message };
-        }
-    }
-
-    // ==========================================
-    // 7. Helpers (UI)
-    // ==========================================
-    function showLoading(show, text = "กำลังโหลด...") {
-      const loader = document.getElementById('loadingScreen');
-      document.getElementById('loadingText').innerText = text;
-      if (show) loader.classList.remove('hidden');
-      else loader.classList.add('hidden');
-    }
-
-    function showError(msg) { document.getElementById('loginError').innerText = msg; }
-
-    function showModal(title, text, type = 'alert', onConfirm = null) {
+    function showModal(title, text) {
       const modal = document.getElementById('customModal');
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalDesc').innerText = text;
-      const btnContainer = document.getElementById('modalBtns');
-      btnContainer.innerHTML = ''; 
-      if (type === 'confirm') {
-        const btnYes = document.createElement('button');
-        btnYes.className = 'modal-btn btn-confirm';
-        btnYes.innerText = 'ยืนยัน';
-        btnYes.onclick = () => { closeModal(); if(onConfirm) onConfirm(); };
-        const btnNo = document.createElement('button');
-        btnNo.className = 'modal-btn btn-cancel';
-        btnNo.innerText = 'ยกเลิก';
-        btnNo.onclick = () => closeModal();
-        btnContainer.appendChild(btnNo);
-        btnContainer.appendChild(btnYes);
-      } else {
-        const btnOk = document.createElement('button');
-        btnOk.className = 'modal-btn btn-confirm';
-        btnOk.innerText = 'ตกลง';
-        btnOk.onclick = () => closeModal();
-        btnContainer.appendChild(btnOk);
-      }
       modal.classList.remove('hidden');
     }
 
-    function closeModal() { document.getElementById('customModal').classList.add('hidden'); }
-    
-    function showSuccessModal(msg, closeApp = false) {
-      showModal("✅ สำเร็จ", msg, 'alert', () => {
-         if(closeApp && liff.isInClient()) liff.closeWindow();
-      });
+    function closeModal() {
+      document.getElementById('customModal').classList.add('hidden');
     }
   </script>
 </body>
 </html>
-
-
-
