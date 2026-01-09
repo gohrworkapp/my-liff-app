@@ -96,7 +96,7 @@
             </div>
             <div class="p-5">
                 <p class="text-xs text-slate-500 mb-2">รายละเอียดงานที่ทำวันนี้:</p>
-                <textarea id="workDescInput" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-rose-400 focus:outline-none h-24 resize-none"></textarea>
+                <textarea id="workDescInput" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-rose-400 focus:outline-none h-24 resize-none" placeholder="เช่น เคลียร์เอกสารบัญชี, ประชุมลูกค้า"></textarea>
                 <div class="flex gap-2 mt-4">
                     <button onclick="closeCheckoutModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium">ยกเลิก</button>
                     <button onclick="confirmCheckout()" class="flex-1 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-rose-200">ยืนยัน</button>
@@ -106,14 +106,14 @@
     </div>
 
     <script>
-        // ⚠️⚠️ แก้ไขการตั้งค่าตรงนี้ ⚠️⚠️
+        // ⚠️⚠️ แก้ไขการตั้งค่าตรงนี้ (ใส่ URL ใหม่ที่ได้จากการ Deploy ล่าสุด) ⚠️⚠️
         const CONFIG = {
             LIFF_ID: "2008786300-Zxf736Ka", 
-            GAS_URL: "https://script.google.com/macros/s/AKfycby2tAs31N5aAzrClKmt019FfsoAP_OaYTd6hq268YIVJwTp9LpRPl_5OGBdJ9QKLtoTnA/exec"
+            GAS_URL: "https://script.google.com/macros/s/AKfycbyt8_t1hKXSTMjPo2oviicZ3E4LIDmqy8RQOHddBJUiB9AbOxcbpZIZPuNgWrkLjhz1KQ/exec"
         };
 
         let USER_PROFILE = null;
-        let OFFICE_LOCATIONS = []; // เก็บรายชื่อสถานที่ทั้งหมด
+        let OFFICE_LOCATIONS = [];
 
         // --- 1. System Start ---
         async function main() {
@@ -127,7 +127,7 @@
                 USER_PROFILE = await liff.getProfile();
                 updateUI(USER_PROFILE);
                 
-                // โหลดข้อมูลคู่ขนาน: ประวัติ + พิกัดสาขา
+                // โหลดข้อมูลคู่ขนาน
                 await Promise.all([
                     fetchHistory(),
                     fetchOfficeLocations()
@@ -135,7 +135,7 @@
 
             } catch (err) {
                 console.error(err);
-                alert("เกิดข้อผิดพลาดในการเริ่มต้นระบบ");
+                // alert("Error Init: " + err.message); // ปิดไว้เพื่อความสวยงาม
             }
         }
 
@@ -145,22 +145,23 @@
             document.getElementById('profileSection').classList.remove('opacity-0');
         }
 
-        // --- 2. Load Office Locations ---
+        // --- 2. Load Office Locations (FIXED CORS) ---
         async function fetchOfficeLocations() {
             try {
+                // ส่งแบบ Simple Request (ไม่มี Header JSON)
                 const response = await fetch(CONFIG.GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'get_office_locations' })
                 });
                 const result = await response.json();
                 OFFICE_LOCATIONS = result.data || [];
-                console.log("Office List Loaded:", OFFICE_LOCATIONS.length, "locations");
+                console.log("Office Loaded:", OFFICE_LOCATIONS.length);
             } catch (err) {
-                console.warn("โหลดพิกัดสาขาไม่สำเร็จ", err);
+                console.warn("Location Load Error:", err);
             }
         }
 
-        // --- 3. Main Action Logic (Multi-Location) ---
+        // --- 3. Main Action Logic ---
         async function handleAction(type, note = "-") {
             toggleLoading(true);
             
@@ -168,35 +169,37 @@
                 // 1. หา GPS
                 const userLoc = await getGPS();
                 if (userLoc.lat === 0 && userLoc.lng === 0) {
-                    throw new Error("ไม่พบสัญญาณ GPS กรุณาเปิด Location Service");
+                    throw new Error("ไม่พบสัญญาณ GPS กรุณาเปิด Location ในมือถือ");
                 }
 
-                // 2. ตรวจสอบว่ามีข้อมูล Office ไหม
+                // 2. เช็คว่ามีข้อมูล Office หรือยัง
                 if (OFFICE_LOCATIONS.length === 0) {
-                    // ถ้าโหลดไม่ทัน ให้ลองโหลดใหม่อีกรอบ
                     await fetchOfficeLocations();
-                    if (OFFICE_LOCATIONS.length === 0) throw new Error("ไม่พบข้อมูลสถานที่ทำงานในระบบ");
+                    if (OFFICE_LOCATIONS.length === 0) throw new Error("ไม่พบข้อมูลสถานที่ทำงานในระบบ (โปรดติดต่อ Admin)");
                 }
 
-                // 3. วนลูปหา Office ที่ใกล้ที่สุดและอยู่ในรัศมี
+                // 3. คำนวณระยะห่างกับทุกสาขา
                 let matchedLocation = null;
                 let minDistance = Infinity;
 
                 OFFICE_LOCATIONS.forEach(office => {
-                    const dist = calculateDistance(userLoc.lat, userLoc.lng, office.lat, office.lng);
-                    const radius = office.radius || 500; // ค่า Default 500m
+                    const officeLat = parseFloat(office.lat);
+                    const officeLng = parseFloat(office.lng);
+                    const officeRadius = parseFloat(office.radius) || 500;
 
-                    if (dist <= radius && dist < minDistance) {
+                    const dist = calculateDistance(userLoc.lat, userLoc.lng, officeLat, officeLng);
+                    
+                    if (dist <= officeRadius && dist < minDistance) {
                         minDistance = dist;
                         matchedLocation = office;
                     }
                 });
 
                 if (!matchedLocation) {
-                    throw new Error(`คุณอยู่นอกพื้นที่ทำงานทุกสาขา\n(ไม่พบสาขาในระยะพิกัดของคุณ)`);
+                    throw new Error(`คุณอยู่นอกพื้นที่ทำงาน (ห่างจุดที่ใกล้สุด ${Math.round(minDistance)} ม.)`);
                 }
 
-                // 4. ส่งข้อมูลไป GAS
+                // 4. ส่งข้อมูลไป GAS (FIXED CORS)
                 const payload = {
                     action: 'submit_checkin',
                     userId: USER_PROFILE.userId,
@@ -206,24 +209,24 @@
                     lat: userLoc.lat,
                     lng: userLoc.lng,
                     note: note,
-                    locationName: matchedLocation.name, // ชื่อสาขาที่เจอ
+                    locationName: matchedLocation.name,
                     distance: Math.round(minDistance)
                 };
 
                 await sendToGAS(payload);
 
                 toggleLoading(false);
-                alert(`✅ บันทึก "${type}" สำเร็จ!\n📍 ${matchedLocation.name}\n(ห่าง ${Math.round(minDistance)} ม.)`);
+                alert(`✅ บันทึก "${type}" สำเร็จ!\n📍 ${matchedLocation.name}`);
                 
-                fetchHistory();
+                fetchHistory(); // อัปเดตประวัติทันที
 
             } catch (err) {
                 toggleLoading(false);
-                alert("❌ ทำรายการไม่สำเร็จ: " + err.message);
+                alert("❌ เกิดข้อผิดพลาด: " + err.message);
             }
         }
 
-        // --- 4. History ---
+        // --- 4. History (FIXED CORS) ---
         async function fetchHistory() {
             const list = document.getElementById('historyList');
             try {
@@ -234,6 +237,7 @@
                 const res = await response.json();
                 renderHistory(res.data);
             } catch (err) {
+                console.error(err);
                 list.innerHTML = `<div class="text-center text-xs text-rose-400">โหลดข้อมูลล้มเหลว</div>`;
             }
         }
@@ -265,7 +269,7 @@
 
         // --- 5. Helpers ---
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // Earth radius in meters
+            const R = 6371e3;
             const φ1 = lat1 * Math.PI/180;
             const φ2 = lat2 * Math.PI/180;
             const Δφ = (lat2-lat1) * Math.PI/180;
@@ -287,17 +291,17 @@
         }
 
         async function sendToGAS(payload) {
+            // ส่งแบบไม่มี Header เพื่อเลี่ยง Preflight Options Request
             return fetch(CONFIG.GAS_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
         }
 
         function toggleLoading(show) {
             const el = document.getElementById('loadingOverlay');
-            if(show) el.classList.remove('hidden'), el.classList.add('flex');
-            else el.classList.add('hidden'), el.classList.remove('flex');
+            if(show) { el.classList.remove('hidden'); el.classList.add('flex'); }
+            else { el.classList.add('hidden'); el.classList.remove('flex'); }
         }
 
         // Modal Logic
@@ -323,4 +327,3 @@
     </script>
 </body>
 </html>
-
