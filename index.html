@@ -1,434 +1,340 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>GoHR - ระบบลงเวลา</title>
-  
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <style>
-    :root {
-      --primary: #0D47A1;
-      --success: #1B5E20;
-      --warning: #F57C00;
-      --info: #0288D1;
-      --danger: #B71C1C;
-      --text: #37474F;
-      --bg: #F5F7FA;
-      --disabled: #B0BEC5;
-    }
-
-    body {
-      font-family: 'Kanit', sans-serif;
-      background-color: var(--bg);
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-      color: var(--text);
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .app-container {
-      width: 100%;
-      max-width: 450px;
-      background: white;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 0 20px rgba(0,0,0,0.05);
-      position: relative;
-    }
-
-    .header {
-      background: var(--primary);
-      padding: 30px 20px 60px;
-      border-bottom-left-radius: 30px;
-      border-bottom-right-radius: 30px;
-      text-align: center;
-      color: white;
-      position: relative;
-    }
-
-    /* Skeleton Loading Effect */
-    .skeleton {
-      animation: skeleton-loading 1s linear infinite alternate;
-      opacity: 0.7;
-    }
-    @keyframes skeleton-loading {
-      0% { background-color: rgba(255,255,255,0.2); }
-      100% { background-color: rgba(255,255,255,0.5); }
-    }
-
-    .profile-img {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      border: 4px solid rgba(255,255,255,0.9);
-      object-fit: cover;
-      background-color: #E0E0E0;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    .user-name { font-size: 1.4rem; font-weight: 500; margin: 10px 0 0; min-height: 25px; }
-    .user-id { font-size: 0.9rem; opacity: 0.8; font-weight: 300; margin-top: 5px; min-height: 20px;}
-
-    .status-card {
-      background: white;
-      margin: -40px 20px 20px;
-      padding: 25px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      text-align: center;
-    }
-    .status-label { font-size: 0.9rem; color: #90A4AE; margin-bottom: 5px; }
-    .time-badge {
-      color: var(--primary);
-      font-weight: 600;
-      font-size: 1.5rem;
-      margin-bottom: 15px;
-      min-height: 30px;
-    }
-    .gps-status {
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      color: #78909C;
-    }
-
-    .content { padding: 10px 25px 40px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GoHR - ลงเวลาทำงาน</title>
     
-    .action-btn {
-      width: 100%;
-      padding: 18px;
-      border: none;
-      border-radius: 16px;
-      font-size: 1.1rem;
-      font-family: 'Kanit';
-      font-weight: 500;
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: all 0.2s;
-    }
-    .action-btn:active { transform: scale(0.98); }
-
-    .btn-disabled {
-      background-color: var(--disabled) !important;
-      cursor: not-allowed;
-      pointer-events: none;
-      box-shadow: none;
-    }
-
-    .btn-in { background: var(--success); }
-    .btn-break { background: var(--warning); font-size: 1rem; }
-    .btn-resume { background: var(--info); font-size: 1rem; }
-    .btn-out { background: var(--danger); }
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     
-    .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    /* Modal */
-    .custom-modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 10000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      backdrop-filter: blur(3px);
-    }
-    .custom-modal-box {
-      background: white; width: 85%; max-width: 320px; padding: 25px;
-      border-radius: 20px; text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-    .modal-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 10px; }
-    .modal-desc { font-size: 1rem; color: #555; margin-bottom: 20px; }
-    .modal-btn {
-      padding: 12px 24px; border: none; border-radius: 12px;
-      font-family: 'Kanit'; font-size: 1rem; cursor: pointer;
-      background: var(--primary); color: white; width: 100%;
-    }
-    .hidden { display: none !important; }
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #F8FAFC; /* สีพื้นหลังโทนสบายตา */
+            -webkit-tap-highlight-color: transparent;
+        }
 
-  </style>
+        /* Glassmorphism Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Button Animation */
+        .action-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Loading Spinner */
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3B82F6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body>
+<body class="flex flex-col min-h-screen text-slate-800">
 
-  <div id="customModal" class="custom-modal-overlay hidden">
-    <div class="custom-modal-box">
-      <div id="modalTitle" class="modal-title">แจ้งเตือน</div>
-      <div id="modalDesc" class="modal-desc">ข้อความ</div>
-      <button class="modal-btn" onclick="closeModal()">ตกลง</button>
-    </div>
-  </div>
-
-  <div class="app-container">
-    
-    <div id="dashboardPage">
-      <div class="header">
-        <img id="userPhoto" src="https://via.placeholder.com/100?text=..." class="profile-img">
-        <div class="user-info">
-          <h2 id="userName" class="user-name skeleton" style="width: 150px; margin: 10px auto; border-radius: 5px;"></h2>
-          <div id="userId" class="user-id skeleton" style="width: 100px; margin: 5px auto; border-radius: 5px;"></div>
+    <div class="relative bg-gradient-to-br from-indigo-600 to-blue-500 pb-16 pt-10 px-6 rounded-b-[40px] shadow-lg overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl"></div>
+        
+        <div id="profileSection" class="relative z-10 flex flex-col items-center opacity-0 transition-opacity duration-700">
+            <div class="relative">
+                <img id="userImage" src="https://via.placeholder.com/150" class="w-24 h-24 rounded-full border-[3px] border-white/40 shadow-xl object-cover">
+                <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-400 border-2 border-white rounded-full"></div>
+            </div>
+            <h1 id="userName" class="text-white text-xl font-semibold mt-4 tracking-wide">กำลังโหลด...</h1>
+            <span class="text-blue-100 text-sm font-light bg-white/10 px-3 py-0.5 rounded-full mt-1">Employee</span>
         </div>
-      </div>
-
-      <div class="status-card">
-        <div class="status-label">เวลาเข้างานวันนี้</div>
-        <div id="checkInTime" class="time-badge">...</div>
-        <div class="gps-status">
-          <i class="fas fa-satellite-dish"></i>
-          <span id="gpsStatus">กำลังค้นหาสัญญาณ...</span>
-        </div>
-      </div>
-
-      <div class="content">
-        <button id="btnCheckIn" class="action-btn btn-in btn-disabled" onclick="submitAction('เข้างาน')">
-          <i class="fas fa-map-marker-alt"></i> ลงเวลาเข้างาน
-        </button>
-
-        <div class="grid-btns">
-          <button id="btnBreak" class="action-btn btn-break btn-disabled" onclick="submitAction('พักเบรค')">
-            <i class="fas fa-coffee"></i> พักเบรค
-          </button>
-          <button id="btnResume" class="action-btn btn-resume btn-disabled" onclick="submitAction('กลับจากพัก')">
-            <i class="fas fa-briefcase"></i> กลับทำงาน
-          </button>
-        </div>
-
-        <button id="btnCheckOut" class="action-btn btn-out btn-disabled" onclick="submitAction('ออกงาน')">
-          <i class="fas fa-sign-out-alt"></i> ลงเวลาออกงาน
-        </button>
-      </div>
     </div>
 
-  </div>
+    <div class="px-5 -mt-10 flex-grow pb-20 z-20">
+        <div class="glass-card rounded-3xl p-6 mb-6">
+            <h2 class="text-sm font-medium text-slate-400 mb-4 uppercase tracking-wider">เมนูลงเวลา</h2>
+            <div class="grid grid-cols-2 gap-4">
+                
+                <button onclick="handleAction('เข้างาน')" class="action-btn bg-emerald-50 hover:bg-emerald-100 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 border border-emerald-100/50">
+                    <div class="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xl shadow-lg shadow-emerald-200">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <span class="text-emerald-700 font-medium">เข้างาน</span>
+                </button>
 
-  <script>
-    // ==========================================
-    // ⚠️ CONFIGURATION (สำคัญมาก!)
-    // ==========================================
-    // 1. นำ URL ที่ได้จากการ Deploy รอบล่าสุดมาวางตรงนี้
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzec_le75Ur9G0A-nV0UZtQoQrIKTJLIe8lZ-wu5Ajks4PEQi1jwZYei0K3iIcmTSPIbg/exec"; 
-    
-    // 2. ใส่ LIFF ID เดิมของคุณ
-    const LIFF_ID = "2008786300-Zxf736Ka"; 
+                <button onclick="handleAction('พักเบรค')" class="action-btn bg-amber-50 hover:bg-amber-100 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 border border-amber-100/50">
+                    <div class="w-12 h-12 bg-amber-400 text-white rounded-full flex items-center justify-center text-xl shadow-lg shadow-amber-200">
+                        <i class="fas fa-mug-hot"></i>
+                    </div>
+                    <span class="text-amber-700 font-medium">พักเบรค</span>
+                </button>
 
-    // Global Vars
-    let CURRENT_EMP_ID = null;
-    let GPS_LAT = null;
-    let GPS_LNG = null;
-    let IS_DATA_LOADED = false;
+                <button onclick="handleAction('กลับมาทำงาน')" class="action-btn bg-blue-50 hover:bg-blue-100 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 border border-blue-100/50">
+                    <div class="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center text-xl shadow-lg shadow-blue-200">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <span class="text-blue-700 font-medium">กลับทำ</span>
+                </button>
 
-    // ==========================================
-    // 1. INITIALIZE (ทำงานทันทีที่เปิด)
-    // ==========================================
-    window.onload = async function() {
-      // เริ่มหา GPS ทันที
-      startGPSWatch();
+                <button onclick="openCheckoutModal()" class="action-btn bg-rose-50 hover:bg-rose-100 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 border border-rose-100/50">
+                    <div class="w-12 h-12 bg-rose-500 text-white rounded-full flex items-center justify-center text-xl shadow-lg shadow-rose-200">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <span class="text-rose-700 font-medium">ออกงาน</span>
+                </button>
 
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        
-        if (liff.isLoggedIn()) {
-            const profile = await liff.getProfile();
-            console.log("UserID:", profile.userId);
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                    <i class="fas fa-stream text-indigo-500"></i> ประวัติวันนี้
+                </h3>
+                <button onclick="fetchHistory()" class="text-slate-400 hover:text-indigo-500 transition-colors">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
             
-            // ดึงข้อมูล Backend โดยใช้ LineUserID
-            fetchUserData(profile.userId);
-            
-            // แสดงรูปจาก Line ระหว่างรอรูปจริงจากระบบ
-            document.getElementById('userPhoto').src = profile.pictureUrl;
-        } else {
-            liff.login(); 
-        }
-      } catch (err) { 
-        console.error("Init Error:", err);
-        showModal("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อ LINE LIFF ได้");
-      }
-    };
+            <div id="historyList" class="space-y-3">
+                <div class="text-center py-6 text-slate-400 text-sm font-light">กำลังโหลดข้อมูล...</div>
+            </div>
+        </div>
+    </div>
 
-    // ==========================================
-    // 2. FETCH DATA (ดึงข้อมูลพนักงาน)
-    // ==========================================
-    async function fetchUserData(lineUserId) {
-        // ยิงไปถาม Backend ด้วย Action: login_by_line_id
-        const payload = { action: 'login_by_line_id', lineUserId: lineUserId };
-        
-        try {
-            const res = await callBackend(payload);
-            
-            if (res.status === 'success') {
-                // ข้อมูลมาแล้ว! อัปเดตหน้าจอ
-                updateDashboardUI(res.data, res.todayCheckIn);
-            } else if (res.status === 'not_found') {
-                // กรณีไม่พบพนักงานในระบบ
-                stopLoadingUI("ไม่พบข้อมูล");
-                showModal("แจ้งเตือน", "คุณยังไม่ได้ลงทะเบียน\nกรุณาปิดหน้านี้ แล้วพิมพ์ 'ลงทะเบียน' ในแชทไลน์ก่อนครับ");
-            } else {
-                stopLoadingUI("ผิดพลาด");
-                showModal("แจ้งเตือน", res.message || "เกิดข้อผิดพลาด");
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 hidden flex-col items-center justify-center transition-all duration-300">
+        <div class="loader mb-4"></div>
+        <p class="text-slate-600 font-medium animate-pulse">กำลังบันทึกข้อมูล...</p>
+    </div>
+
+    <div id="checkoutModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center px-4 transition-all duration-300 opacity-0 scale-95">
+        <div class="bg-white w-full max-w-sm rounded-[30px] shadow-2xl overflow-hidden transform transition-all">
+            <div class="bg-rose-500 p-5 text-white text-center">
+                <h3 class="text-lg font-bold">ยืนยันการออกงาน</h3>
+                <p class="text-rose-100 text-sm">กรุณาระบุรายละเอียดงานวันนี้</p>
+            </div>
+            <div class="p-6">
+                <textarea id="workDescInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 transition-all h-28 resize-none placeholder-slate-400" placeholder="เช่น สรุปรายงานประจำวัน, ตอบลูกค้าครบถ้วน..."></textarea>
+                
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeCheckoutModal()" class="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-colors">ยกเลิก</button>
+                    <button onclick="confirmCheckout()" class="flex-1 py-3.5 bg-rose-500 text-white rounded-xl font-medium shadow-lg shadow-rose-200 hover:bg-rose-600 transition-colors">ยืนยัน</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️⚠️ แก้ไขข้อมูลตรงนี้ ⚠️⚠️
+        const CONFIG = {
+            LIFF_ID: "2008786300-Zxf736Ka",      // ใส่ LIFF ID ที่ได้จาก LINE Developers
+            GAS_URL: "https://script.google.com/macros/s/AKfycbwA9xqGFI-35GLs2Evd4sDslvwRfgdrLmDgbGO2_JvTa3BkleYPkpwv-ARGVMVOIBa3Vg/exec" // ใส่ URL Web App จาก Google Apps Script
+        };
+
+        let USER_PROFILE = null;
+
+        // --- 1. INITIALIZATION ---
+        async function main() {
+            try {
+                await liff.init({ liffId: CONFIG.LIFF_ID });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                
+                USER_PROFILE = await liff.getProfile();
+                updateUI(USER_PROFILE);
+                fetchHistory(); // ดึงประวัติทันทีที่เปิด
+                
+            } catch (err) {
+                console.error("LIFF Init Error:", err);
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ LINE");
             }
-        } catch (e) {
-            stopLoadingUI("Connection Error");
-            showModal("Error", "เชื่อมต่อ Server ไม่ได้");
-        }
-    }
-
-    function updateDashboardUI(userData, checkInTime) {
-        CURRENT_EMP_ID = userData.id;
-        IS_DATA_LOADED = true;
-
-        // ลบ Effect โหลด และใส่ข้อมูลจริง
-        const nameEl = document.getElementById('userName');
-        const idEl = document.getElementById('userId');
-        
-        nameEl.classList.remove('skeleton');
-        nameEl.style.width = 'auto';
-        nameEl.style.backgroundColor = 'transparent';
-        nameEl.innerText = userData.name;
-
-        idEl.classList.remove('skeleton');
-        idEl.style.width = 'auto';
-        idEl.innerText = "รหัส: " + userData.id;
-
-        // ถ้ามีรูปในระบบ ให้ใช้รูปนั้น ถ้าไม่มีใช้รูปจาก Line (ซึ่งใส่ไว้แล้ว)
-        if (userData.photoUrl && userData.photoUrl !== "https://via.placeholder.com/150") {
-             document.getElementById('userPhoto').src = userData.photoUrl;
         }
 
-        document.getElementById('checkInTime').innerText = checkInTime !== "-" ? checkInTime + " น." : "ยังไม่ลงเวลา";
+        function updateUI(profile) {
+            document.getElementById('userImage').src = profile.pictureUrl;
+            document.getElementById('userName').innerText = profile.displayName;
+            document.getElementById('profileSection').classList.remove('opacity-0');
+        }
 
-        // ✅ ปลดล็อกปุ่มให้กดได้
-        enableButtons();
-    }
+        // --- 2. MAIN ACTIONS ---
+        async function handleAction(type, note = "-") {
+            toggleLoading(true);
+            
+            try {
+                // 1. หาพิกัด GPS
+                const location = await getGPS();
 
-    function stopLoadingUI(msg) {
-        const nameEl = document.getElementById('userName');
-        nameEl.classList.remove('skeleton');
-        nameEl.style.width = 'auto';
-        nameEl.innerText = msg;
-        document.getElementById('userId').classList.remove('skeleton');
-        document.getElementById('userId').innerText = "-";
-    }
+                // 2. เตรียมข้อมูลส่งไป GAS
+                const payload = {
+                    action: 'submit_checkin',
+                    userId: USER_PROFILE.userId,
+                    displayName: USER_PROFILE.displayName,
+                    pictureUrl: USER_PROFILE.pictureUrl,
+                    type: type,
+                    lat: location.lat,
+                    lng: location.lng,
+                    note: note
+                };
 
-    function enableButtons() {
-        const btns = document.querySelectorAll('.action-btn');
-        btns.forEach(btn => btn.classList.remove('btn-disabled'));
-    }
+                // 3. ยิงไปหา GAS
+                await sendToGAS(payload);
 
-    // ==========================================
-    // 3. ACTION HANDLERS
-    // ==========================================
-    function submitAction(actionType) {
-      if (!IS_DATA_LOADED || !CURRENT_EMP_ID) return;
+                toggleLoading(false);
+                
+                // แจ้งเตือนสวยๆ (ใช้ Alert ง่ายๆ ไปก่อน หรือจะทำ Custom Toast ก็ได้)
+                setTimeout(() => alert(`✅ บันทึก "${type}" สำเร็จ!`), 100);
+                
+                // อัปเดตประวัติทันที
+                fetchHistory();
 
-      if (actionType === 'ออกงาน') {
-        let workDesc = prompt("ระบุงานที่ทำวันนี้ (สั้นๆ):", "") || "-";
-        performSubmit(actionType, workDesc);
-        return; 
-      }
-      performSubmit(actionType, "-");
-    }
+            } catch (err) {
+                toggleLoading(false);
+                alert("❌ เกิดข้อผิดพลาด: " + err.message);
+            }
+        }
 
-    function performSubmit(actionType, workDesc) {
-      if (!GPS_LAT || !GPS_LNG) {
-        showModal("กำลังหาพิกัด", "กรุณารอสักครู่ ระบบกำลังจับสัญญาณ GPS...");
-        // เร่งหา GPS อีกรอบ
-        navigator.geolocation.getCurrentPosition(
-             (pos) => { GPS_LAT = pos.coords.latitude; GPS_LNG = pos.coords.longitude; },
-             null, { enableHighAccuracy: true, timeout: 5000 }
-        );
-        return;
-      }
+        // --- 3. FETCH HISTORY ---
+        async function fetchHistory() {
+            const list = document.getElementById('historyList');
+            // list.innerHTML = `<div class="text-center py-6 text-slate-400 text-sm font-light">กำลังอัปเดต...</div>`;
 
-      // Lock ปุ่มระหว่างส่งข้อมูล
-      disableButtonsTemp();
+            try {
+                const response = await fetch(CONFIG.GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        action: 'get_today_history', 
+                        userId: USER_PROFILE.userId 
+                    })
+                });
+                
+                const result = await response.json();
+                renderHistory(result.data);
 
-      const payload = { 
-          action: 'submit_checkin',
-          actualAction: actionType, 
-          empId: CURRENT_EMP_ID, 
-          lat: GPS_LAT, 
-          lng: GPS_LNG, 
-          workDescription: workDesc
-      };
-      
-      callBackend(payload).then(res => {
-          enableButtons(); // ปลดล็อกปุ่ม
-          if (res.status === 'success') {
-              if (actionType === 'เข้างาน') { document.getElementById('checkInTime').innerText = res.time + " น."; }
-              showModal("✅ สำเร็จ", res.message);
-              // ปิด LIFF อัตโนมัติหลัง 2 วิ (Optional)
-              // setTimeout(() => liff.closeWindow(), 2000);
-          } else {
-              showModal("แจ้งเตือน", res.message);
-          }
-      });
-    }
+            } catch (err) {
+                list.innerHTML = `<div class="text-center py-4 text-rose-400 text-sm">โหลดข้อมูลไม่สำเร็จ</div>`;
+            }
+        }
 
-    function disableButtonsTemp() {
-        const btns = document.querySelectorAll('.action-btn');
-        btns.forEach(btn => {
-            btn.classList.add('btn-disabled');
-            if(btn.id === 'btnCheckIn') btn.innerText = "กำลังบันทึก...";
-        });
-    }
+        function renderHistory(logs) {
+            const list = document.getElementById('historyList');
+            list.innerHTML = "";
 
-    // ==========================================
-    // 4. UTILITIES
-    // ==========================================
-    async function callBackend(payload) {
-        try {
-            const response = await fetch(GAS_API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" }, // ใช้ text/plain เพื่อเลี่ยง CORS ของ Google
+            if (!logs || logs.length === 0) {
+                list.innerHTML = `<div class="text-center py-6 text-slate-400 text-sm font-light">ยังไม่มีประวัติวันนี้</div>`;
+                return;
+            }
+
+            logs.forEach(log => {
+                let colorClass = "bg-slate-500";
+                let icon = "fa-clock";
+                
+                if (log.action.includes("เข้า")) { colorClass = "bg-emerald-500"; icon = "fa-sign-in-alt"; }
+                else if (log.action.includes("ออก")) { colorClass = "bg-rose-500"; icon = "fa-sign-out-alt"; }
+                else if (log.action.includes("พัก")) { colorClass = "bg-amber-400"; icon = "fa-coffee"; }
+                else { colorClass = "bg-blue-500"; icon = "fa-briefcase"; }
+
+                const html = `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 ${colorClass} text-white rounded-full flex items-center justify-center text-xs shadow-sm">
+                                <i class="fas ${icon}"></i>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-slate-700 font-medium text-sm">${log.action}</span>
+                            </div>
+                        </div>
+                        <span class="text-xs font-mono text-slate-500 bg-white px-2 py-1 rounded border border-slate-100">${log.time} น.</span>
+                    </div>
+                `;
+                list.innerHTML += html;
+            });
+        }
+
+        // --- 4. UTILITIES ---
+        function getGPS() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    // ถ้าระบบไม่รองรับ ให้ส่ง 0,0 ไป (GAS จะบันทึกว่าหาไม่เจอ)
+                    resolve({ lat: 0, lng: 0 }); 
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                    (err) => {
+                        console.warn("GPS Error", err);
+                        resolve({ lat: 0, lng: 0 }); // ยอมให้ผ่านแม้ไม่มี GPS (หรือจะ reject เพื่อบังคับก็ได้)
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            });
+        }
+
+        async function sendToGAS(payload) {
+            // ใช้ no-cors ไม่ได้เพราะต้องการอ่าน response แต่ต้องมั่นใจว่า GAS Deploy as Anyone
+            return fetch(CONFIG.GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }, // สำคัญสำหรับ Code.gs ที่ให้ไป
                 body: JSON.stringify(payload)
             });
-            return await response.json();
-        } catch (error) {
-            console.error("API Error:", error);
-            return { status: 'error', message: error.message };
         }
-    }
 
-    function startGPSWatch() {
-      if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(
-          (position) => {
-            GPS_LAT = position.coords.latitude;
-            GPS_LNG = position.coords.longitude;
-            const acc = position.coords.accuracy;
-            const gpsText = document.getElementById('gpsStatus');
-            if (acc <= 50) { gpsText.innerHTML = `<span style="color:var(--success)">GPS สัญญาณดี (±${Math.round(acc)}ม.)</span>`; } 
-            else { gpsText.innerHTML = `<span style="color:var(--warning)">GPS พอใช้ (±${Math.round(acc)}ม.)</span>`; }
-          },
-          (err) => { document.getElementById('gpsStatus').innerText = "ไม่พบสัญญาณ GPS"; },
-          { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-        );
-      } else { document.getElementById('gpsStatus').innerText = "เครื่องไม่รองรับ GPS"; }
-    }
+        function toggleLoading(show) {
+            const el = document.getElementById('loadingOverlay');
+            if (show) el.classList.remove('hidden'), el.classList.add('flex');
+            else el.classList.add('hidden'), el.classList.remove('flex');
+        }
 
-    function showModal(title, text) {
-      const modal = document.getElementById('customModal');
-      document.getElementById('modalTitle').innerText = title;
-      document.getElementById('modalDesc').innerText = text;
-      modal.classList.remove('hidden');
-    }
+        // --- 5. MODAL LOGIC ---
+        const modal = document.getElementById('checkoutModal');
+        const modalContent = modal.querySelector('div');
 
-    function closeModal() {
-      document.getElementById('customModal').classList.add('hidden');
-    }
-  </script>
+        function openCheckoutModal() {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // Animation
+            setTimeout(() => {
+                modal.classList.remove('opacity-0', 'scale-95');
+                modal.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        }
+
+        function closeCheckoutModal() {
+            modal.classList.remove('opacity-100', 'scale-100');
+            modal.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function confirmCheckout() {
+            const note = document.getElementById('workDescInput').value.trim();
+            if (!note) {
+                alert("กรุณาระบุรายละเอียดงานก่อนออกงานครับ");
+                return;
+            }
+            closeCheckoutModal();
+            handleAction('ออกงาน', note);
+            document.getElementById('workDescInput').value = ""; // Clear input
+        }
+
+        // Start App
+        main();
+
+    </script>
 </body>
 </html>
