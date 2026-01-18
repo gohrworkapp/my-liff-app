@@ -106,10 +106,10 @@
     </div>
 
     <script>
-        // ⚠️⚠️ แก้ไขการตั้งค่าตรงนี้ (ใส่ URL ใหม่ที่ได้จากการ Deploy ล่าสุด) ⚠️⚠️
+        // ⚠️⚠️ แก้ไข: ใส่ URL ของ Web App ที่ได้จากการ Deploy ล่าสุด (New Version) ที่นี่ ⚠️⚠️
         const CONFIG = {
             LIFF_ID: "2008786300-Zxf736Ka", 
-            GAS_URL: "https://script.google.com/macros/s/AKfycbzFrVWUy6LhBOCbns7TE6qnY-jPXJFUz7RQd8Sqj4seFQf3X-pDnP10MHl3M2T9STpwsg/exec"
+            GAS_URL: "https://script.google.com/macros/s/AKfycbxcNDE5cXy5wyRAVFzZfUNV9Zt9dE-gBN3LSoT6ULRWkF1eLymleKUq7rykeVUUPaLGMA/exec"
         };
 
         let USER_PROFILE = null;
@@ -127,7 +127,7 @@
                 USER_PROFILE = await liff.getProfile();
                 updateUI(USER_PROFILE);
                 
-                // โหลดข้อมูลคู่ขนาน
+                // โหลดประวัติและข้อมูลสถานที่พร้อมกัน
                 await Promise.all([
                     fetchHistory(),
                     fetchOfficeLocations()
@@ -135,7 +135,7 @@
 
             } catch (err) {
                 console.error(err);
-                // alert("Error Init: " + err.message); // ปิดไว้เพื่อความสวยงาม
+                // alert("Error Init: " + err.message);
             }
         }
 
@@ -145,10 +145,9 @@
             document.getElementById('profileSection').classList.remove('opacity-0');
         }
 
-        // --- 2. Load Office Locations (FIXED CORS) ---
+        // --- 2. Load Office Locations ---
         async function fetchOfficeLocations() {
             try {
-                // ส่งแบบ Simple Request (ไม่มี Header JSON)
                 const response = await fetch(CONFIG.GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'get_office_locations' })
@@ -161,7 +160,7 @@
             }
         }
 
-        // --- 3. Main Action Logic ---
+        // --- 3. Main Action Logic (Update: Server-Side Decision) ---
         async function handleAction(type, note = "-") {
             toggleLoading(true);
             
@@ -172,34 +171,32 @@
                     throw new Error("ไม่พบสัญญาณ GPS กรุณาเปิด Location ในมือถือ");
                 }
 
-                // 2. เช็คว่ามีข้อมูล Office หรือยัง
+                // 2. โหลด Locations ถ้ายังไม่มี
                 if (OFFICE_LOCATIONS.length === 0) {
                     await fetchOfficeLocations();
-                    if (OFFICE_LOCATIONS.length === 0) throw new Error("ไม่พบข้อมูลสถานที่ทำงานในระบบ (โปรดติดต่อ Admin)");
                 }
 
-                // 3. คำนวณระยะห่างกับทุกสาขา
-                let matchedLocation = null;
+                // 3. Logic ใหม่: หาจุดที่ใกล้ที่สุด (เพื่อส่งชื่อไปแสดงผล) ไม่มีการ throw error ระยะทางที่นี่
+                let nearestLocation = null;
                 let minDistance = Infinity;
 
                 OFFICE_LOCATIONS.forEach(office => {
+                    // แปลงค่าเป็น float เพื่อความชัวร์
                     const officeLat = parseFloat(office.lat);
                     const officeLng = parseFloat(office.lng);
-                    const officeRadius = parseFloat(office.radius) || 500;
 
                     const dist = calculateDistance(userLoc.lat, userLoc.lng, officeLat, officeLng);
                     
-                    if (dist <= officeRadius && dist < minDistance) {
+                    if (dist < minDistance) {
                         minDistance = dist;
-                        matchedLocation = office;
+                        nearestLocation = office;
                     }
                 });
 
-                if (!matchedLocation) {
-                    throw new Error(`คุณอยู่นอกพื้นที่ทำงาน (ห่างจุดที่ใกล้สุด ${Math.round(minDistance)} ม.)`);
-                }
+                // ชื่อสถานที่ที่จะส่งไป (ถ้าไม่มี Config เลย ให้ชื่อเป็น Unknown)
+                const locName = nearestLocation ? nearestLocation.name : "Unknown Location";
 
-                // 4. ส่งข้อมูลไป GAS (FIXED CORS)
+                // 4. ส่งข้อมูลไปให้ GAS (GAS จะเป็นคนเช็ค LocationLock เอง)
                 const payload = {
                     action: 'submit_checkin',
                     userId: USER_PROFILE.userId,
@@ -209,16 +206,24 @@
                     lat: userLoc.lat,
                     lng: userLoc.lng,
                     note: note,
-                    locationName: matchedLocation.name,
-                    distance: Math.round(minDistance)
+                    locationName: locName,
+                    distance: Math.round(minDistance) // ส่งระยะห่างจริงไปให้ GAS เช็ค
                 };
 
-                await sendToGAS(payload);
+                const response = await sendToGAS(payload);
+                const result = await response.json();
 
                 toggleLoading(false);
-                alert(`✅ บันทึก "${type}" สำเร็จ!\n📍 ${matchedLocation.name}`);
-                
-                fetchHistory(); // อัปเดตประวัติทันที
+
+                // 5. ตรวจสอบผลลัพธ์จาก Server
+                if (result.status === 'success') {
+                    // ลงเวลาสำเร็จ (ไม่ว่า Lock On หรือ Off)
+                    alert(`✅ บันทึก "${type}" สำเร็จ!\n📍 ${locName}`);
+                    fetchHistory(); // อัปเดตประวัติทันที
+                } else {
+                    // ลงเวลาไม่สำเร็จ (เช่น Lock On แล้วระยะเกิน)
+                    alert(`❌ บันทึกไม่สำเร็จ: ${result.message || "เกิดข้อผิดพลาด"}`);
+                }
 
             } catch (err) {
                 toggleLoading(false);
@@ -226,7 +231,7 @@
             }
         }
 
-        // --- 4. History (FIXED CORS) ---
+        // --- 4. History ---
         async function fetchHistory() {
             const list = document.getElementById('historyList');
             try {
@@ -291,7 +296,6 @@
         }
 
         async function sendToGAS(payload) {
-            // ส่งแบบไม่มี Header เพื่อเลี่ยง Preflight Options Request
             return fetch(CONFIG.GAS_URL, {
                 method: 'POST',
                 body: JSON.stringify(payload)
@@ -327,8 +331,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
