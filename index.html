@@ -1,329 +1,326 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GoHR - ลงเวลาทำงาน</title>
-    
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GoHR - ลงเวลาทำงาน</title>
+    
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #F1F5F9; -webkit-tap-highlight-color: transparent; }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .btn-press { transition: transform 0.1s; }
-        .btn-press:active { transform: scale(0.95); }
-        .loader { width: 30px; height: 30px; border: 3px solid #E2E8F0; border-top: 3px solid #3B82F6; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #F1F5F9; -webkit-tap-highlight-color: transparent; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .btn-press { transition: transform 0.1s; }
+        .btn-press:active { transform: scale(0.95); }
+        .loader { width: 30px; height: 30px; border: 3px solid #E2E8F0; border-top: 3px solid #3B82F6; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-800">
 
-    <div class="relative bg-gradient-to-r from-blue-600 to-indigo-700 pb-12 pt-8 px-6 rounded-b-[35px] shadow-lg overflow-hidden">
-        <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-        
-        <div id="profileSection" class="relative z-10 flex flex-col items-center opacity-0 transition-opacity duration-500">
-            <img id="userImage" src="https://via.placeholder.com/150" class="w-20 h-20 rounded-full border-4 border-white/30 shadow-md object-cover">
-            <h1 id="userName" class="text-white text-lg font-bold mt-3">กำลังโหลด...</h1>
-            <div class="flex items-center gap-2 mt-1">
-                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                <span class="text-blue-100 text-xs">ระบบพร้อมใช้งาน</span>
-            </div>
-        </div>
-    </div>
+    <div class="relative bg-gradient-to-r from-blue-600 to-indigo-700 pb-12 pt-8 px-6 rounded-b-[35px] shadow-lg overflow-hidden">
+        <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+        
+        <div id="profileSection" class="relative z-10 flex flex-col items-center opacity-0 transition-opacity duration-500">
+            <img id="userImage" src="https://via.placeholder.com/150" class="w-20 h-20 rounded-full border-4 border-white/30 shadow-md object-cover">
+            <h1 id="userName" class="text-white text-lg font-bold mt-3">กำลังโหลด...</h1>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                <span class="text-blue-100 text-xs">ระบบพร้อมใช้งาน</span>
+            </div>
+        </div>
+    </div>
 
-    <div class="px-5 -mt-8 flex-grow pb-24 z-20">
-        
-        <div class="glass-card p-6 mb-5">
-            <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 ml-1">เมนูลงเวลา</h2>
-            <div class="grid grid-cols-2 gap-3">
-                
-                <button onclick="handleAction('เข้างาน')" class="btn-press bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-emerald-200">
-                        <i class="fas fa-sign-in-alt"></i>
-                    </div>
-                    <span class="text-emerald-700 font-medium text-sm">เข้างาน</span>
-                </button>
+    <div class="px-5 -mt-8 flex-grow pb-24 z-20">
+        
+        <div class="glass-card p-6 mb-5">
+            <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 ml-1">เมนูลงเวลา</h2>
+            
+            <div class="grid grid-cols-2 gap-3">
+                
+                <button onclick="handleAction('เข้างาน')" class="btn-press bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <div class="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-emerald-200">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <span class="text-emerald-700 font-medium text-sm">เข้างาน</span>
+                </button>
 
-                <button onclick="handleAction('พักเบรค')" class="btn-press bg-amber-50 border border-amber-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-amber-400 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-amber-200">
-                        <i class="fas fa-utensils"></i>
-                    </div>
-                    <span class="text-amber-700 font-medium text-sm">พักเบรค</span>
-                </button>
+                <button onclick="handleAction('พักเบรค')" class="btn-press bg-amber-50 border border-amber-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <div class="w-10 h-10 bg-amber-400 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-amber-200">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <span class="text-amber-700 font-medium text-sm">พักเบรค</span>
+                </button>
 
-                <button onclick="handleAction('กลับมาทำงาน')" class="btn-press bg-blue-50 border border-blue-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-blue-200">
-                        <i class="fas fa-undo"></i>
-                    </div>
-                    <span class="text-blue-700 font-medium text-sm">กลับทำ</span>
-                </button>
+                <button onclick="handleAction('กลับมาทำงาน')" class="btn-press bg-blue-50 border border-blue-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-blue-200">
+                        <i class="fas fa-undo"></i>
+                    </div>
+                    <span class="text-blue-700 font-medium text-sm">กลับทำ</span>
+                </button>
 
-                <button onclick="openCheckoutModal()" class="btn-press bg-rose-50 border border-rose-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-rose-500 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-rose-200">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </div>
-                    <span class="text-rose-700 font-medium text-sm">ออกงาน</span>
-                </button>
+                <button onclick="openCheckoutModal()" class="btn-press bg-rose-50 border border-rose-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <div class="w-10 h-10 bg-rose-500 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-rose-200">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <span class="text-rose-700 font-medium text-sm">ออกงาน</span>
+                </button>
 
-            </div>
-        </div>
+            </div>
+        </div>
 
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
-                    <i class="fas fa-history text-indigo-500"></i> ประวัติวันนี้
-                </h3>
-                <button onclick="fetchHistory()" class="text-xs text-indigo-500 hover:underline">รีเฟรช</button>
-            </div>
-            <div id="historyList" class="space-y-2">
-                <div class="text-center py-4 text-slate-400 text-xs">กำลังโหลด...</div>
-            </div>
-        </div>
-    </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                    <i class="fas fa-history text-indigo-500"></i> ประวัติวันนี้
+                </h3>
+                <button onclick="fetchHistory()" class="text-xs text-indigo-500 hover:underline">รีเฟรช</button>
+            </div>
+            <div id="historyList" class="space-y-2">
+                <div class="text-center py-4 text-slate-400 text-xs">กำลังโหลด...</div>
+            </div>
+        </div>
+    </div>
 
-    <div id="loadingOverlay" class="fixed inset-0 bg-white/90 backdrop-blur-sm z-50 hidden flex-col items-center justify-center">
-        <div class="loader mb-3"></div>
-        <p class="text-slate-600 text-sm font-medium animate-pulse">กำลังประมวลผล...</p>
-    </div>
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/90 backdrop-blur-sm z-50 hidden flex-col items-center justify-center">
+        <div class="loader mb-3"></div>
+        <p class="text-slate-600 text-sm font-medium animate-pulse">กำลังประมวลผล...</p>
+    </div>
 
-    <div id="checkoutModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center px-4 transition-opacity duration-300 opacity-0">
-        <div class="bg-white w-full max-w-xs rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
-            <div class="bg-rose-500 p-4 text-white text-center">
-                <h3 class="font-bold">ยืนยันการออกงาน</h3>
-            </div>
-            <div class="p-5">
-                <p class="text-xs text-slate-500 mb-2">รายละเอียดงานที่ทำวันนี้:</p>
-                <textarea id="workDescInput" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-rose-400 focus:outline-none h-24 resize-none" placeholder="เช่น เคลียร์เอกสารบัญชี, ประชุมลูกค้า"></textarea>
-                <div class="flex gap-2 mt-4">
-                    <button onclick="closeCheckoutModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium">ยกเลิก</button>
-                    <button onclick="confirmCheckout()" class="flex-1 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-rose-200">ยืนยัน</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div id="checkoutModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center px-4 transition-opacity duration-300 opacity-0">
+        <div class="bg-white w-full max-w-xs rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="bg-rose-500 p-4 text-white text-center">
+                <h3 class="font-bold">ยืนยันการออกงาน</h3>
+            </div>
+            <div class="p-5">
+                <p class="text-xs text-slate-500 mb-2">รายละเอียดงานที่ทำวันนี้:</p>
+                <textarea id="workDescInput" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-rose-400 focus:outline-none h-24 resize-none" placeholder="เช่น เคลียร์เอกสารบัญชี, ประชุมลูกค้า"></textarea>
+                <div class="flex gap-2 mt-4">
+                    <button onclick="closeCheckoutModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium">ยกเลิก</button>
+                    <button onclick="confirmCheckout()" class="flex-1 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-rose-200">ยืนยัน</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <script>
-        // ⚠️⚠️ แก้ไขการตั้งค่าตรงนี้ (ใส่ URL ใหม่ที่ได้จากการ Deploy ล่าสุด) ⚠️⚠️
-        const CONFIG = {
-            LIFF_ID: "2008786300-Zxf736Ka", 
-            GAS_URL: "https://script.google.com/macros/s/AKfycbztThBYPFBGw1gKYl6-EsAUSr0z3fQ71S_wcsqWqVCiY3Pq7DAClfBYU0Ec4qWxH3YG9Q/exec"
-        };
+    <script>
+        // Config ค่าเดิมจากที่คุณให้มา
+        const CONFIG = {
+            LIFF_ID: "2008786300-Zxf736Ka", 
+            GAS_URL: "https://script.google.com/macros/s/AKfycbztThBYPFBGw1gKYl6-EsAUSr0z3fQ71S_wcsqWqVCiY3Pq7DAClfBYU0Ec4qWxH3YG9Q/exec"
+        };
 
-        let USER_PROFILE = null;
-        let OFFICE_LOCATIONS = [];
+        let USER_PROFILE = null;
+        let OFFICE_LOCATIONS = [];
 
-        // --- 1. System Start ---
-        async function main() {
-            try {
-                await liff.init({ liffId: CONFIG.LIFF_ID });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
-                
-                USER_PROFILE = await liff.getProfile();
-                updateUI(USER_PROFILE);
-                
-                // โหลดข้อมูลคู่ขนาน
-                await Promise.all([
-                    fetchHistory(),
-                    fetchOfficeLocations()
-                ]);
+        // --- System Start ---
+        async function main() {
+            try {
+                await liff.init({ liffId: CONFIG.LIFF_ID });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                
+                USER_PROFILE = await liff.getProfile();
+                updateUI(USER_PROFILE);
+                
+                await Promise.all([
+                    fetchHistory(),
+                    fetchOfficeLocations()
+                ]);
 
-            } catch (err) {
-                console.error(err);
-                // alert("Error Init: " + err.message); // ปิดไว้เพื่อความสวยงาม
-            }
-        }
+            } catch (err) {
+                console.error(err);
+            }
+        }
 
-        function updateUI(profile) {
-            document.getElementById('userImage').src = profile.pictureUrl;
-            document.getElementById('userName').innerText = profile.displayName;
-            document.getElementById('profileSection').classList.remove('opacity-0');
-        }
+        function updateUI(profile) {
+            document.getElementById('userImage').src = profile.pictureUrl;
+            document.getElementById('userName').innerText = profile.displayName;
+            document.getElementById('profileSection').classList.remove('opacity-0');
+        }
 
-        // --- 2. Load Office Locations (FIXED CORS) ---
-        async function fetchOfficeLocations() {
-            try {
-                // ส่งแบบ Simple Request (ไม่มี Header JSON)
-                const response = await fetch(CONFIG.GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'get_office_locations' })
-                });
-                const result = await response.json();
-                OFFICE_LOCATIONS = result.data || [];
-                console.log("Office Loaded:", OFFICE_LOCATIONS.length);
-            } catch (err) {
-                console.warn("Location Load Error:", err);
-            }
-        }
+        // --- Load Office ---
+        async function fetchOfficeLocations() {
+            try {
+                const response = await fetch(CONFIG.GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_office_locations' })
+                });
+                const result = await response.json();
+                OFFICE_LOCATIONS = result.data || [];
+                console.log("Office Loaded:", OFFICE_LOCATIONS.length);
+            } catch (err) {
+                console.warn("Location Load Error:", err);
+            }
+        }
 
-        // --- 3. Main Action Logic ---
-        async function handleAction(type, note = "-") {
-            toggleLoading(true);
-            
-            try {
-                // 1. หา GPS
-                const userLoc = await getGPS();
-                if (userLoc.lat === 0 && userLoc.lng === 0) {
-                    throw new Error("ไม่พบสัญญาณ GPS กรุณาเปิด Location ในมือถือ");
-                }
+        // --- Main Logic ---
+        async function handleAction(type, note = "-") {
+            toggleLoading(true);
+            
+            try {
+                // 1. GPS
+                const userLoc = await getGPS();
+                if (userLoc.lat === 0 && userLoc.lng === 0) {
+                    throw new Error("ไม่พบสัญญาณ GPS กรุณาเปิด Location ในมือถือ");
+                }
 
-                // 2. เช็คว่ามีข้อมูล Office หรือยัง
-                if (OFFICE_LOCATIONS.length === 0) {
-                    await fetchOfficeLocations();
-                    if (OFFICE_LOCATIONS.length === 0) throw new Error("ไม่พบข้อมูลสถานที่ทำงานในระบบ (โปรดติดต่อ Admin)");
-                }
+                // 2. Check Data
+                if (OFFICE_LOCATIONS.length === 0) {
+                    await fetchOfficeLocations();
+                    if (OFFICE_LOCATIONS.length === 0) throw new Error("ไม่พบข้อมูลสถานที่ทำงานในระบบ (โปรดติดต่อ Admin)");
+                }
 
-                // 3. คำนวณระยะห่างกับทุกสาขา
-                let matchedLocation = null;
-                let minDistance = Infinity;
+                // 3. Distance Check
+                let matchedLocation = null;
+                let minDistance = Infinity;
 
-                OFFICE_LOCATIONS.forEach(office => {
-                    const officeLat = parseFloat(office.lat);
-                    const officeLng = parseFloat(office.lng);
-                    const officeRadius = parseFloat(office.radius) || 500;
+                OFFICE_LOCATIONS.forEach(office => {
+                    const officeLat = parseFloat(office.lat);
+                    const officeLng = parseFloat(office.lng);
+                    const officeRadius = parseFloat(office.radius) || 500;
 
-                    const dist = calculateDistance(userLoc.lat, userLoc.lng, officeLat, officeLng);
-                    
-                    if (dist <= officeRadius && dist < minDistance) {
-                        minDistance = dist;
-                        matchedLocation = office;
-                    }
-                });
+                    const dist = calculateDistance(userLoc.lat, userLoc.lng, officeLat, officeLng);
+                    
+                    if (dist <= officeRadius && dist < minDistance) {
+                        minDistance = dist;
+                        matchedLocation = office;
+                    }
+                });
 
-                if (!matchedLocation) {
-                    throw new Error(`คุณอยู่นอกพื้นที่ทำงาน (ห่างจุดที่ใกล้สุด ${Math.round(minDistance)} ม.)`);
-                }
+                if (!matchedLocation) {
+                    throw new Error(`คุณอยู่นอกพื้นที่ทำงาน (ห่างจุดที่ใกล้สุด ${Math.round(minDistance)} ม.)`);
+                }
 
-                // 4. ส่งข้อมูลไป GAS (FIXED CORS)
-                const payload = {
-                    action: 'submit_checkin',
-                    userId: USER_PROFILE.userId,
-                    displayName: USER_PROFILE.displayName,
-                    pictureUrl: USER_PROFILE.pictureUrl,
-                    type: type,
-                    lat: userLoc.lat,
-                    lng: userLoc.lng,
-                    note: note,
-                    locationName: matchedLocation.name,
-                    distance: Math.round(minDistance)
-                };
+                // 4. Send Data
+                const payload = {
+                    action: 'submit_checkin',
+                    userId: USER_PROFILE.userId,
+                    displayName: USER_PROFILE.displayName,
+                    pictureUrl: USER_PROFILE.pictureUrl,
+                    type: type,
+                    lat: userLoc.lat,
+                    lng: userLoc.lng,
+                    note: note,
+                    locationName: matchedLocation.name,
+                    distance: Math.round(minDistance)
+                };
 
-                await sendToGAS(payload);
+                await sendToGAS(payload);
 
-                toggleLoading(false);
-                alert(`✅ บันทึก "${type}" สำเร็จ!\n📍 ${matchedLocation.name}`);
-                
-                fetchHistory(); // อัปเดตประวัติทันที
+                toggleLoading(false);
+                alert(`✅ บันทึก "${type}" สำเร็จ!\n📍 ${matchedLocation.name}`);
+                
+                fetchHistory();
 
-            } catch (err) {
-                toggleLoading(false);
-                alert("❌ เกิดข้อผิดพลาด: " + err.message);
-            }
-        }
+            } catch (err) {
+                toggleLoading(false);
+                alert("❌ เกิดข้อผิดพลาด: " + err.message);
+            }
+        }
 
-        // --- 4. History (FIXED CORS) ---
-        async function fetchHistory() {
-            const list = document.getElementById('historyList');
-            try {
-                const response = await fetch(CONFIG.GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'get_today_history', userId: USER_PROFILE.userId })
-                });
-                const res = await response.json();
-                renderHistory(res.data);
-            } catch (err) {
-                console.error(err);
-                list.innerHTML = `<div class="text-center text-xs text-rose-400">โหลดข้อมูลล้มเหลว</div>`;
-            }
-        }
+        // --- History ---
+        async function fetchHistory() {
+            const list = document.getElementById('historyList');
+            try {
+                const response = await fetch(CONFIG.GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_today_history', userId: USER_PROFILE.userId })
+                });
+                const res = await response.json();
+                renderHistory(res.data);
+            } catch (err) {
+                console.error(err);
+                list.innerHTML = `<div class="text-center text-xs text-rose-400">โหลดข้อมูลล้มเหลว</div>`;
+            }
+        }
 
-        function renderHistory(logs) {
-            const list = document.getElementById('historyList');
-            list.innerHTML = "";
-            if (!logs || logs.length === 0) {
-                list.innerHTML = `<div class="text-center py-4 text-slate-300 text-xs">ยังไม่มีประวัติวันนี้</div>`;
-                return;
-            }
-            logs.forEach(log => {
-                let color = "bg-slate-500";
-                if(log.action.includes("เข้า")) color = "bg-emerald-500";
-                else if(log.action.includes("ออก")) color = "bg-rose-500";
-                else if(log.action.includes("พัก")) color = "bg-amber-400";
-                else color = "bg-blue-500";
+        function renderHistory(logs) {
+            const list = document.getElementById('historyList');
+            list.innerHTML = "";
+            if (!logs || logs.length === 0) {
+                list.innerHTML = `<div class="text-center py-4 text-slate-300 text-xs">ยังไม่มีประวัติวันนี้</div>`;
+                return;
+            }
+            logs.forEach(log => {
+                let color = "bg-slate-500";
+                if(log.action.includes("เข้า")) color = "bg-emerald-500";
+                else if(log.action.includes("ออก")) color = "bg-rose-500";
+                else if(log.action.includes("พัก")) color = "bg-amber-400";
+                else color = "bg-blue-500";
 
-                list.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full ${color}"></div>
-                            <span class="text-sm text-slate-600 font-medium">${log.action}</span>
-                        </div>
-                        <span class="text-xs font-mono text-slate-400">${log.time} น.</span>
-                    </div>`;
-            });
-        }
+                list.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full ${color}"></div>
+                            <span class="text-sm text-slate-600 font-medium">${log.action}</span>
+                        </div>
+                        <span class="text-xs font-mono text-slate-400">${log.time} น.</span>
+                    </div>`;
+            });
+        }
 
-        // --- 5. Helpers ---
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3;
-            const φ1 = lat1 * Math.PI/180;
-            const φ2 = lat2 * Math.PI/180;
-            const Δφ = (lat2-lat1) * Math.PI/180;
-            const Δλ = (lon2-lon1) * Math.PI/180;
-            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
+        // --- Helpers ---
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI/180;
+            const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180;
+            const Δλ = (lon2-lon1) * Math.PI/180;
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
 
-        function getGPS() {
-            return new Promise((resolve) => {
-                if(!navigator.geolocation) resolve({lat:0, lng:0});
-                navigator.geolocation.getCurrentPosition(
-                    pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                    () => resolve({ lat:0, lng:0 }),
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                );
-            });
-        }
+        function getGPS() {
+            return new Promise((resolve) => {
+                if(!navigator.geolocation) resolve({lat:0, lng:0});
+                navigator.geolocation.getCurrentPosition(
+                    pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                    () => resolve({ lat:0, lng:0 }),
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            });
+        }
 
-        async function sendToGAS(payload) {
-            // ส่งแบบไม่มี Header เพื่อเลี่ยง Preflight Options Request
-            return fetch(CONFIG.GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-        }
+        async function sendToGAS(payload) {
+            return fetch(CONFIG.GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+        }
 
-        function toggleLoading(show) {
-            const el = document.getElementById('loadingOverlay');
-            if(show) { el.classList.remove('hidden'); el.classList.add('flex'); }
-            else { el.classList.add('hidden'); el.classList.remove('flex'); }
-        }
+        function toggleLoading(show) {
+            const el = document.getElementById('loadingOverlay');
+            if(show) { el.classList.remove('hidden'); el.classList.add('flex'); }
+            else { el.classList.add('hidden'); el.classList.remove('flex'); }
+        }
 
-        // Modal Logic
-        const modal = document.getElementById('checkoutModal');
-        const modalBox = modal.querySelector('div');
-        function openCheckoutModal() {
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-            setTimeout(() => { modal.classList.remove('opacity-0'); modalBox.classList.remove('scale-95'); }, 10);
-        }
-        function closeCheckoutModal() {
-            modal.classList.add('opacity-0'); modalBox.classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
-        }
-        function confirmCheckout() {
-            const note = document.getElementById('workDescInput').value.trim();
-            if(!note) { alert("กรุณาระบุรายละเอียดงาน"); return; }
-            closeCheckoutModal();
-            handleAction('ออกงาน', note);
-            document.getElementById('workDescInput').value = "";
-        }
+        // Modal Logic
+        const modal = document.getElementById('checkoutModal');
+        const modalBox = modal.querySelector('div');
+        function openCheckoutModal() {
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); modalBox.classList.remove('scale-95'); }, 10);
+        }
+        function closeCheckoutModal() {
+            modal.classList.add('opacity-0'); modalBox.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+        }
+        function confirmCheckout() {
+            const note = document.getElementById('workDescInput').value.trim();
+            if(!note) { alert("กรุณาระบุรายละเอียดงาน"); return; }
+            closeCheckoutModal();
+            handleAction('ออกงาน', note);
+            document.getElementById('workDescInput').value = "";
+        }
 
-        main();
-    </script>
+        main();
+    </script>
 </body>
 </html>
