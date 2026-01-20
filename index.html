@@ -3,120 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GoHR - ลงเวลาทำงาน</title>
+    <title>ระบบลงเวลาทำงาน (HR Time Attendance)</title>
     
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #F1F5F9; -webkit-tap-highlight-color: transparent; }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .btn-press { transition: transform 0.1s; }
-        .btn-press:active { transform: scale(0.95); }
-        .loader { width: 30px; height: 30px; border: 3px solid #E2E8F0; border-top: 3px solid #3B82F6; border-radius: 50%; animation: spin 1s linear infinite; }
+        body { 
+            font-family: 'Sarabun', 'Kanit', sans-serif; 
+            background-color: #f3f4f6; /* สีเทาอ่อนแบบทางการ */
+            color: #1f2937;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Animation สำหรับปุ่มเวลากด */
+        .btn-active:active { transform: translateY(2px); opacity: 0.9; }
+        
+        /* Loader */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1f2937;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="flex flex-col min-h-screen text-slate-800">
+<body class="bg-gray-100 min-h-screen flex justify-center">
 
-    <div class="relative bg-gradient-to-r from-blue-600 to-indigo-700 pb-12 pt-8 px-6 rounded-b-[35px] shadow-lg overflow-hidden">
-        <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+    <div class="w-full max-w-md bg-white min-h-screen shadow-xl relative flex flex-col">
         
-        <div id="profileSection" class="relative z-10 flex flex-col items-center opacity-0 transition-opacity duration-500">
-            <img id="userImage" src="https://via.placeholder.com/150" class="w-20 h-20 rounded-full border-4 border-white/30 shadow-md object-cover">
-            <h1 id="userName" class="text-white text-lg font-bold mt-3">กำลังโหลด...</h1>
-            <div class="flex items-center gap-2 mt-1">
-                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                <span class="text-blue-100 text-xs">ระบบพร้อมใช้งาน</span>
+        <header class="bg-white border-b border-gray-200 px-6 py-5 flex items-center justify-between sticky top-0 z-30">
+            <div>
+                <h1 class="text-lg font-bold text-gray-800">ลงเวลาทำงาน</h1>
+                <p class="text-xs text-gray-500">ระบบบันทึกเวลาออนไลน์</p>
             </div>
-        </div>
-    </div>
+            <div id="profileSection" class="flex items-center gap-3 opacity-0 transition-opacity duration-300">
+                <div class="text-right hidden sm:block">
+                    <p id="userName" class="text-sm font-medium text-gray-900">...</p>
+                    <p class="text-[10px] text-green-600 flex items-center justify-end gap-1">
+                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> ออนไลน์
+                    </p>
+                </div>
+                <img id="userImage" src="https://via.placeholder.com/100" class="w-10 h-10 rounded-full border border-gray-200 object-cover">
+            </div>
+        </header>
 
-    <div class="px-5 -mt-8 flex-grow pb-24 z-20">
-        
-        <div class="glass-card p-6 mb-5">
-            <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 ml-1">เมนูลงเวลา</h2>
+        <main class="flex-grow p-6">
             
-            <div class="grid grid-cols-2 gap-3">
+            <div class="mb-6">
+                <h2 class="text-sm text-gray-500 mb-1">ยินดีต้อนรับ</h2>
+                <div class="text-xl font-semibold text-gray-800" id="welcomeName">กรุณารอสักครู่...</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
                 
-                <button onclick="handleAction('เข้างาน')" class="btn-press bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-emerald-200">
+                <button onclick="handleAction('เข้างาน')" class="btn-active group bg-white border border-gray-200 hover:border-emerald-500 p-4 rounded-xl shadow-sm flex flex-col items-center gap-3 transition-all">
+                    <div class="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 text-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                         <i class="fas fa-sign-in-alt"></i>
                     </div>
-                    <span class="text-emerald-700 font-medium text-sm">เข้างาน</span>
+                    <span class="text-sm font-medium text-gray-700">เข้างาน</span>
                 </button>
 
-                <button onclick="handleAction('พักเบรค')" class="btn-press bg-amber-50 border border-amber-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-amber-400 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-amber-200">
+                <button onclick="handleAction('พักเบรค')" class="btn-active group bg-white border border-gray-200 hover:border-amber-500 p-4 rounded-xl shadow-sm flex flex-col items-center gap-3 transition-all">
+                    <div class="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 text-xl group-hover:bg-amber-500 group-hover:text-white transition-colors">
                         <i class="fas fa-utensils"></i>
                     </div>
-                    <span class="text-amber-700 font-medium text-sm">พักเบรค</span>
+                    <span class="text-sm font-medium text-gray-700">พักเบรค</span>
                 </button>
 
-                <button onclick="handleAction('กลับมาทำงาน')" class="btn-press bg-blue-50 border border-blue-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-blue-200">
+                <button onclick="handleAction('กลับมาทำงาน')" class="btn-active group bg-white border border-gray-200 hover:border-blue-500 p-4 rounded-xl shadow-sm flex flex-col items-center gap-3 transition-all">
+                    <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                         <i class="fas fa-undo"></i>
                     </div>
-                    <span class="text-blue-700 font-medium text-sm">กลับทำ</span>
+                    <span class="text-sm font-medium text-gray-700">กลับทำ</span>
                 </button>
 
-                <button onclick="openCheckoutModal()" class="btn-press bg-rose-50 border border-rose-100 p-4 rounded-xl flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-rose-500 text-white rounded-full flex items-center justify-center text-lg shadow-md shadow-rose-200">
+                <button onclick="openCheckoutModal()" class="btn-active group bg-white border border-gray-200 hover:border-red-500 p-4 rounded-xl shadow-sm flex flex-col items-center gap-3 transition-all">
+                    <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-600 text-xl group-hover:bg-red-600 group-hover:text-white transition-colors">
                         <i class="fas fa-sign-out-alt"></i>
                     </div>
-                    <span class="text-rose-700 font-medium text-sm">ออกงาน</span>
+                    <span class="text-sm font-medium text-gray-700">ออกงาน</span>
                 </button>
 
             </div>
-        </div>
 
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
-                    <i class="fas fa-history text-indigo-500"></i> ประวัติวันนี้
-                </h3>
-                <button onclick="fetchHistory()" class="text-xs text-indigo-500 hover:underline">รีเฟรช</button>
+            <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">ประวัติวันนี้</h3>
+                    <button onclick="fetchHistory()" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                        <i class="fas fa-sync-alt"></i> รีเฟรช
+                    </button>
+                </div>
+                <div id="historyList" class="space-y-3">
+                    <div class="text-center py-6 text-gray-400 text-sm">กำลังโหลดข้อมูล...</div>
+                </div>
             </div>
-            <div id="historyList" class="space-y-2">
-                <div class="text-center py-4 text-slate-400 text-xs">กำลังโหลด...</div>
-            </div>
+
+        </main>
+
+        <footer class="text-center py-4 text-[10px] text-gray-400 border-t border-gray-100">
+            Powered by GoHR System
+        </footer>
+
+    </div>
+
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden flex-col items-center justify-center">
+        <div class="bg-white p-5 rounded-2xl shadow-lg flex flex-col items-center">
+            <div class="spinner mb-3"></div>
+            <p class="text-sm text-gray-600">กำลังบันทึกข้อมูล...</p>
         </div>
     </div>
 
-    <div id="loadingOverlay" class="fixed inset-0 bg-white/90 backdrop-blur-sm z-50 hidden flex-col items-center justify-center">
-        <div class="loader mb-3"></div>
-        <p class="text-slate-600 text-sm font-medium animate-pulse">กำลังประมวลผล...</p>
-    </div>
-
-    <div id="checkoutModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center px-4 transition-opacity duration-300 opacity-0">
-        <div class="bg-white w-full max-w-xs rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
-            <div class="bg-rose-500 p-4 text-white text-center">
-                <h3 class="font-bold">ยืนยันการออกงาน</h3>
+    <div id="checkoutModal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-200">
+            <div class="bg-gray-800 px-5 py-4 flex justify-between items-center">
+                <h3 class="text-white font-medium">ยืนยันการออกงาน</h3>
+                <button onclick="closeCheckoutModal()" class="text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
             </div>
-            <div class="p-5">
-                <p class="text-xs text-slate-500 mb-2">รายละเอียดงานที่ทำวันนี้:</p>
-                <textarea id="workDescInput" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-rose-400 focus:outline-none h-24 resize-none" placeholder="เช่น เคลียร์เอกสารบัญชี, ประชุมลูกค้า"></textarea>
-                <div class="flex gap-2 mt-4">
-                    <button onclick="closeCheckoutModal()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium">ยกเลิก</button>
-                    <button onclick="confirmCheckout()" class="flex-1 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-rose-200">ยืนยัน</button>
+            <div class="p-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">รายละเอียดงานที่ทำวันนี้:</label>
+                <textarea id="workDescInput" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gray-800 focus:outline-none h-28 resize-none placeholder-gray-400" placeholder="เช่น เคลียร์เอกสารบัญชี, ประชุมลูกค้า..."></textarea>
+                
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeCheckoutModal()" class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">ยกเลิก</button>
+                    <button onclick="confirmCheckout()" class="flex-1 py-2.5 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 shadow-md transition">ยืนยัน</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Config ค่าเดิมจากที่คุณให้มา
+        // ⚠️⚠️ แก้ไขการตั้งค่า LIFF ID และ Web App URL ที่นี่ ⚠️⚠️
         const CONFIG = {
             LIFF_ID: "2008786300-Zxf736Ka", 
-            GAS_URL: "https://script.google.com/macros/s/AKfycbztThBYPFBGw1gKYl6-EsAUSr0z3fQ71S_wcsqWqVCiY3Pq7DAClfBYU0Ec4qWxH3YG9Q/exec"
+            GAS_URL: "https://script.google.com/macros/s/AKfycbw6wN7Zjm7KwgJTEkQPTivuH7VydXqSGPbMn9bqWu-7LR4JGk8-FChgYhB5pLBAkNA8/exec"
         };
 
         let USER_PROFILE = null;
         let OFFICE_LOCATIONS = [];
 
-        // --- System Start ---
+        // --- 1. เริ่มต้นระบบ ---
         async function main() {
             try {
                 await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -128,23 +159,26 @@
                 USER_PROFILE = await liff.getProfile();
                 updateUI(USER_PROFILE);
                 
+                // โหลดข้อมูลพร้อมกัน
                 await Promise.all([
                     fetchHistory(),
                     fetchOfficeLocations()
                 ]);
 
             } catch (err) {
-                console.error(err);
+                console.error("LIFF Init Error:", err);
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ LINE: " + err.message);
             }
         }
 
         function updateUI(profile) {
             document.getElementById('userImage').src = profile.pictureUrl;
             document.getElementById('userName').innerText = profile.displayName;
+            document.getElementById('welcomeName').innerText = `สวัสดี, ${profile.displayName}`;
             document.getElementById('profileSection').classList.remove('opacity-0');
         }
 
-        // --- Load Office ---
+        // --- 2. โหลดพิกัดออฟฟิศ ---
         async function fetchOfficeLocations() {
             try {
                 const response = await fetch(CONFIG.GAS_URL, {
@@ -153,30 +187,30 @@
                 });
                 const result = await response.json();
                 OFFICE_LOCATIONS = result.data || [];
-                console.log("Office Loaded:", OFFICE_LOCATIONS.length);
+                console.log("Office Data Loaded:", OFFICE_LOCATIONS.length);
             } catch (err) {
                 console.warn("Location Load Error:", err);
             }
         }
 
-        // --- Main Logic ---
+        // --- 3. ฟังก์ชันหลัก (Check In/Out) ---
         async function handleAction(type, note = "-") {
             toggleLoading(true);
             
             try {
-                // 1. GPS
+                // A. ดึง GPS
                 const userLoc = await getGPS();
                 if (userLoc.lat === 0 && userLoc.lng === 0) {
-                    throw new Error("ไม่พบสัญญาณ GPS กรุณาเปิด Location ในมือถือ");
+                    throw new Error("ไม่พบสัญญาณ GPS กรุณาเปิด Location และอนุญาตให้เข้าถึงตำแหน่ง");
                 }
 
-                // 2. Check Data
+                // B. เช็คว่ามีข้อมูลออฟฟิศไหม
                 if (OFFICE_LOCATIONS.length === 0) {
-                    await fetchOfficeLocations();
-                    if (OFFICE_LOCATIONS.length === 0) throw new Error("ไม่พบข้อมูลสถานที่ทำงานในระบบ (โปรดติดต่อ Admin)");
+                    await fetchOfficeLocations(); // ลองโหลดใหม่
+                    if (OFFICE_LOCATIONS.length === 0) throw new Error("ไม่พบข้อมูลสถานที่ทำงานในระบบ");
                 }
 
-                // 3. Distance Check
+                // C. คำนวณระยะทาง
                 let matchedLocation = null;
                 let minDistance = Infinity;
 
@@ -194,10 +228,10 @@
                 });
 
                 if (!matchedLocation) {
-                    throw new Error(`คุณอยู่นอกพื้นที่ทำงาน (ห่างจุดที่ใกล้สุด ${Math.round(minDistance)} ม.)`);
+                    throw new Error(`คุณอยู่นอกพื้นที่ทำงาน (ห่างจุดเช็คอิน ${Math.round(minDistance)} ม.)`);
                 }
 
-                // 4. Send Data
+                // D. ส่งข้อมูล
                 const payload = {
                     action: 'submit_checkin',
                     userId: USER_PROFILE.userId,
@@ -213,21 +247,24 @@
 
                 await sendToGAS(payload);
 
+                // E. สำเร็จ
                 toggleLoading(false);
-                alert(`✅ บันทึก "${type}" สำเร็จ!\n📍 ${matchedLocation.name}`);
-                
+                await Swal_Alert("success", "บันทึกสำเร็จ", `คุณได้ทำการ "${type}" เรียบร้อยแล้ว\nณ ${matchedLocation.name}`);
                 fetchHistory();
 
             } catch (err) {
                 toggleLoading(false);
-                alert("❌ เกิดข้อผิดพลาด: " + err.message);
+                Swal_Alert("error", "ทำรายการไม่สำเร็จ", err.message);
             }
         }
 
-        // --- History ---
+        // --- 4. ประวัติ ---
         async function fetchHistory() {
             const list = document.getElementById('historyList');
             try {
+                // Clear & Loading
+                list.innerHTML = `<div class="text-center py-6 text-gray-400 text-sm animate-pulse">กำลังดึงข้อมูล...</div>`;
+                
                 const response = await fetch(CONFIG.GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'get_today_history', userId: USER_PROFILE.userId })
@@ -236,7 +273,7 @@
                 renderHistory(res.data);
             } catch (err) {
                 console.error(err);
-                list.innerHTML = `<div class="text-center text-xs text-rose-400">โหลดข้อมูลล้มเหลว</div>`;
+                list.innerHTML = `<div class="text-center text-xs text-red-400">โหลดข้อมูลล้มเหลว ลองใหม่อีกครั้ง</div>`;
             }
         }
 
@@ -244,28 +281,37 @@
             const list = document.getElementById('historyList');
             list.innerHTML = "";
             if (!logs || logs.length === 0) {
-                list.innerHTML = `<div class="text-center py-4 text-slate-300 text-xs">ยังไม่มีประวัติวันนี้</div>`;
+                list.innerHTML = `<div class="text-center py-6 text-gray-300 text-sm">ยังไม่มีประวัติการลงเวลาวันนี้</div>`;
                 return;
             }
             logs.forEach(log => {
-                let color = "bg-slate-500";
-                if(log.action.includes("เข้า")) color = "bg-emerald-500";
-                else if(log.action.includes("ออก")) color = "bg-rose-500";
-                else if(log.action.includes("พัก")) color = "bg-amber-400";
-                else color = "bg-blue-500";
+                // กำหนดสีตามประเภทงาน (แบบ Clean)
+                let iconClass = "fa-clock";
+                let textClass = "text-gray-600";
+                let bgClass = "bg-gray-100";
+
+                if(log.action.includes("เข้า")) { iconClass = "fa-sign-in-alt"; textClass = "text-emerald-600"; bgClass = "bg-emerald-50"; }
+                else if(log.action.includes("ออก")) { iconClass = "fa-sign-out-alt"; textClass = "text-red-600"; bgClass = "bg-red-50"; }
+                else if(log.action.includes("พัก")) { iconClass = "fa-utensils"; textClass = "text-amber-600"; bgClass = "bg-amber-50"; }
+                else { iconClass = "fa-undo"; textClass = "text-blue-600"; bgClass = "bg-blue-50"; }
 
                 list.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
                         <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full ${color}"></div>
-                            <span class="text-sm text-slate-600 font-medium">${log.action}</span>
+                            <div class="w-8 h-8 rounded-full ${bgClass} flex items-center justify-center ${textClass}">
+                                <i class="fas ${iconClass} text-xs"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-800">${log.action}</p>
+                                <p class="text-[10px] text-gray-400">${log.location || 'สำนักงาน'}</p>
+                            </div>
                         </div>
-                        <span class="text-xs font-mono text-slate-400">${log.time} น.</span>
+                        <span class="text-sm font-mono font-semibold text-gray-600">${log.time}</span>
                     </div>`;
             });
         }
 
-        // --- Helpers ---
+        // --- Utilities ---
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371e3;
             const φ1 = lat1 * Math.PI/180;
@@ -273,8 +319,7 @@
             const Δφ = (lat2-lat1) * Math.PI/180;
             const Δλ = (lon2-lon1) * Math.PI/180;
             const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
         function getGPS() {
@@ -282,7 +327,7 @@
                 if(!navigator.geolocation) resolve({lat:0, lng:0});
                 navigator.geolocation.getCurrentPosition(
                     pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                    () => resolve({ lat:0, lng:0 }),
+                    err => { console.warn(err); resolve({ lat:0, lng:0 }); },
                     { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
                 );
             });
@@ -291,6 +336,7 @@
         async function sendToGAS(payload) {
             return fetch(CONFIG.GAS_URL, {
                 method: 'POST',
+                // redirect: 'follow', // บางกรณี GAS ต้องใช้ redirect แต่ default usually works
                 body: JSON.stringify(payload)
             });
         }
@@ -301,25 +347,53 @@
             else { el.classList.add('hidden'); el.classList.remove('flex'); }
         }
 
-        // Modal Logic
-        const modal = document.getElementById('checkoutModal');
-        const modalBox = modal.querySelector('div');
-        function openCheckoutModal() {
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-            setTimeout(() => { modal.classList.remove('opacity-0'); modalBox.classList.remove('scale-95'); }, 10);
-        }
-        function closeCheckoutModal() {
-            modal.classList.add('opacity-0'); modalBox.classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
-        }
-        function confirmCheckout() {
-            const note = document.getElementById('workDescInput').value.trim();
-            if(!note) { alert("กรุณาระบุรายละเอียดงาน"); return; }
-            closeCheckoutModal();
-            handleAction('ออกงาน', note);
-            document.getElementById('workDescInput').value = "";
+        // Custom Alert เพื่อความสวยงาม (แทน alert ธรรมดา)
+        function Swal_Alert(type, title, text) {
+            // ใช้ alert ธรรมดาไปก่อนเพื่อให้ Code เบาที่สุด แต่จัด Format ข้อความให้อ่านง่าย
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    alert(`${type === 'success' ? '✅' : '❌'} ${title}\n\n${text}`);
+                    resolve();
+                }, 100);
+            });
         }
 
+        // Modal Control
+        const modal = document.getElementById('checkoutModal');
+        const modalBox = modal.querySelector('div'); // กล่องขาวข้างใน
+
+        function openCheckoutModal() {
+            modal.classList.remove('hidden'); 
+            modal.classList.add('flex');
+            // Animation in
+            setTimeout(() => { 
+                modal.classList.remove('opacity-0'); 
+                modalBox.classList.remove('scale-95'); 
+            }, 10);
+        }
+
+        function closeCheckoutModal() {
+            // Animation out
+            modal.classList.add('opacity-0'); 
+            modalBox.classList.add('scale-95');
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                modal.classList.remove('flex'); 
+            }, 200);
+        }
+
+        function confirmCheckout() {
+            const note = document.getElementById('workDescInput').value.trim();
+            if(!note) { 
+                alert("กรุณาระบุรายละเอียดงานก่อนออกงาน"); 
+                return; 
+            }
+            closeCheckoutModal();
+            handleAction('ออกงาน', note);
+            document.getElementById('workDescInput').value = ""; // Reset
+        }
+
+        // Run Main
         main();
     </script>
 </body>
