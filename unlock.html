@@ -138,10 +138,10 @@
     </div>
 
     <script>
-        // ⚠️⚠️ ตั้งค่า LIFF ID ใหม่ และ URL ของ Google Apps Script ⚠️⚠️
+        // ⚠️⚠️ แก้ไขการตั้งค่าตรงนี้ ⚠️⚠️
         const CONFIG = {
-            LIFF_ID: "2008786300-hy6x4jOO", // ใส่ ID ของ LIFF ตัวที่ 2
-            GAS_URL: "https://script.google.com/macros/s/AKfycbw6wN7Zjm7KwgJTEkQPTivuH7VydXqSGPbMn9bqWu-7LR4JGk8-FChgYhB5pLBAkNA8/exec"
+            LIFF_ID: "2008786300-hy6x4jOO", 
+            GAS_URL: "https://script.google.com/macros/s/AKfycbxC2y7v2de_HcIOlN9VIny-JP0zYo2EAbTn-U8IWzJaavZAW0muAmpEVzmqML00_njksg/exec"
         };
 
         let USER_PROFILE = null;
@@ -152,7 +152,7 @@
                 if (!liff.isLoggedIn()) { liff.login(); return; }
                 USER_PROFILE = await liff.getProfile();
                 updateUI(USER_PROFILE);
-                fetchHistory(); // โหลดประวัติเลย ไม่ต้องเช็คระยะ
+                fetchHistory();
             } catch (err) { console.error("LIFF Init Error:", err); }
         }
 
@@ -165,10 +165,9 @@
         async function handleAction(type, note = "-") {
             toggleLoading(true);
             try {
-                // ดึง GPS (เพื่อบันทึก แต่ไม่เอามาคำนวณ)
+                // ดึง GPS (เพื่อบันทึกเป็นหลักฐาน แต่ไม่นำมาคำนวณระยะ)
                 const userLoc = await getGPS(); 
                 
-                // ส่งข้อมูลไป Backend โดย set distance = 0 และระบุ locationName ว่า Unlock
                 const payload = {
                     action: 'submit_checkin',
                     userId: USER_PROFILE.userId,
@@ -179,7 +178,7 @@
                     lng: userLoc.lng,
                     note: note,
                     locationName: "Unlock Mode", 
-                    distance: 0 // กุญแจสำคัญ: ส่ง 0 เพื่อให้ผ่าน Logic การเช็คระยะที่ Backend
+                    distance: 0 // กุญแจสำคัญ: ส่ง 0 เพื่อผ่าน Logic Server
                 };
 
                 await sendToGAS(payload);
@@ -196,35 +195,16 @@
         async function fetchHistory() {
             const list = document.getElementById('historyList');
             try {
+                // ใช้ POST แบบปกติ
                 const response = await fetch(CONFIG.GAS_URL, {
-                    method: 'POST', // ใช้ POST เพื่อเลี่ยงปัญหา CORS กับ GAS บางกรณี
-                    mode: 'no-cors', // หากเจอปัญหา CORS ให้เปิด no-cors แต่จะไม่เห็น response body
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ใช้ text/plain เพื่อเลี่ยง Preflight
-                    body: JSON.stringify({ action: 'get_today_history', userId: USER_PROFILE.userId })
-                });
-                
-                // หมายเหตุ: การใช้ fetch กับ GAS ผ่าน GitHub Pages อาจติดเรื่อง CORS
-                // วิธีแก้ที่ง่ายที่สุดคือใช้ doPost ที่ GAS ให้ return ContentService.createTextOutput
-                // และในฝั่งนี้อาจจะต้องยอมรับ opaque response (no-cors) หรือใช้เทคนิค JSONP (แต่ GAS เลิก support แล้ว)
-                // เพื่อความชัวร์ในกรณีนี้ ผมแนะนำให้ใช้ method POST แบบปกติก่อน
-                
-                // ถ้าใช้ no-cors เราจะอ่าน body ไม่ได้ ดังนั้นถ้าจะอ่านประวัติ
-                // แนะนำให้ Backend return Header: "Access-Control-Allow-Origin: *"
-                // ซึ่งเดี๋ยวผมจะปรับ Code.gs ให้รองรับครับ
-                
-                // *เพื่อความง่าย ผมขอใช้ท่ามาตรฐานก่อน ถ้าติด CORS แจ้งผมได้ครับ*
-                
-                // ลอง fetch แบบปกติ (หวังว่า GAS deploy เป็น Anyone แล้ว)
-                const normalRes = await fetch(CONFIG.GAS_URL, {
                      method: 'POST',
                      body: JSON.stringify({ action: 'get_today_history', userId: USER_PROFILE.userId })
                 });
-                const res = await normalRes.json();
+                const res = await response.json();
                 renderHistory(res.data);
-
             } catch (err) {
-                // กรณี Error เงียบไว้ก่อน หรือแสดง UI ว่าโหลดไม่ได้
                 console.warn("History fetch error:", err);
+                list.innerHTML = `<div class="text-center py-6 text-xs text-rose-500 flex items-center justify-center gap-2"><i class="fas fa-exclamation-triangle"></i> โหลดประวัติไม่สำเร็จ</div>`;
             }
         }
 
@@ -239,6 +219,8 @@
                 let iconClass = "fa-clock", textClass = "text-slate-600", bgClass = "bg-slate-100", borderClass = "border-slate-300";
                 if(log.action.includes("เข้า")) { iconClass = "fa-sign-in-alt"; textClass = "text-emerald-700"; bgClass = "bg-emerald-50"; borderClass = "border-emerald-500"; }
                 else if(log.action.includes("ออก")) { iconClass = "fa-sign-out-alt"; textClass = "text-rose-700"; bgClass = "bg-rose-50"; borderClass = "border-rose-500"; }
+                else if(log.action.includes("พัก")) { iconClass = "fa-utensils"; textClass = "text-amber-700"; bgClass = "bg-amber-50"; borderClass = "border-amber-500"; }
+                else { iconClass = "fa-undo"; textClass = "text-blue-700"; bgClass = "bg-blue-50"; borderClass = "border-blue-600"; }
                 
                 list.innerHTML += `
                     <div class="flex items-center justify-between p-3 ${bgClass} rounded-xl border-l-4 ${borderClass} shadow-sm">
@@ -265,28 +247,85 @@
                 );
             });
         }
+
         async function sendToGAS(payload) {
-             // ใช้ POST ธรรมดา (GAS ต้อง Deploy เป็น Anyone)
             return fetch(CONFIG.GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
         }
+
         function toggleLoading(show) {
             const el = document.getElementById('loadingOverlay');
             show ? (el.classList.remove('hidden'), el.classList.add('flex')) : (el.classList.add('hidden'), el.classList.remove('flex'));
         }
         
-        // Modal functions
+        // --- Modal functions (แก้ไขแล้ว) ---
         const modal = document.getElementById('checkoutModal');
-        function openCheckoutModal() { modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(()=>modal.classList.remove('opacity-0'),10); }
-        function closeCheckoutModal() { modal.classList.add('opacity-0'); setTimeout(()=>{ modal.classList.add('hidden'); modal.classList.remove('flex'); },300); }
+        const modalBox = modal.querySelector('div'); // อ้างอิงกล่องภายใน
+
+        function openCheckoutModal() {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                // ดึงกล่องขึ้นมา
+                modalBox.classList.remove('translate-y-full', 'sm:scale-95', 'sm:translate-y-0');
+            }, 10);
+        }
+
+        function closeCheckoutModal() {
+            modal.classList.add('opacity-0');
+            // ดันกล่องกลับลงไป
+            modalBox.classList.add('translate-y-full', 'sm:scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
         function confirmCheckout() {
             const note = document.getElementById('workDescInput').value.trim();
-            if(!note) return document.getElementById('workDescInput').focus();
-            closeCheckoutModal(); handleAction('ออกงาน', note); document.getElementById('workDescInput').value = "";
+            if(!note) {
+                const input = document.getElementById('workDescInput');
+                input.classList.add('ring-2', 'ring-rose-500', 'border-rose-500');
+                input.focus();
+                setTimeout(() => input.classList.remove('ring-2', 'ring-rose-500', 'border-rose-500'), 2000);
+                return;
+            }
+            closeCheckoutModal();
+            handleAction('ออกงาน', note);
+            document.getElementById('workDescInput').value = "";
         }
+
+        // --- Custom Alert (กู้คืนกลับมาแล้ว) ---
         function Swal_Alert(type, title, text) {
-             // (Copy ฟังก์ชัน Swal_Alert จาก index.html มาใส่ตรงนี้เพื่อให้แสดงผลเหมือนกัน)
-             // เนื่องจากพื้นที่จำกัด ผมละไว้ในฐานที่เข้าใจว่าใช้ตัวเดียวกันครับ
-             alert(`${title}\n${text}`); // Fallback
+            return new Promise(resolve => {
+                const alertId = 'customAlert_' + Date.now();
+                const iconHtml = type === 'success' 
+                    ? '<div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-500 mb-3 text-2xl"><i class="fas fa-check"></i></div>'
+                    : '<div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-500 mb-3 text-2xl"><i class="fas fa-times"></i></div>';
+                
+                const btnBg = type === 'success' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-rose-600 hover:bg-rose-700';
+
+                const alertHtml = `
+                    <div id="${alertId}" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+                        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-xs w-full flex flex-col items-center scale-90 transition-transform duration-200">
+                            ${iconHtml}
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">${title}</h3>
+                            <p class="text-sm text-slate-600 text-center mb-5 whitespace-pre-line">${text}</p>
+                            <button onclick="closeCustomAlert('${alertId}')" class="w-full py-2.5 ${btnBg} text-white rounded-xl font-medium transition-colors">ตกลง</button>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', alertHtml);
+                const alertEl = document.getElementById(alertId);
+                const alertBox = alertEl.querySelector('div');
+                setTimeout(() => { alertEl.classList.remove('opacity-0'); alertBox.classList.remove('scale-90'); }, 10);
+
+                window.closeCustomAlert = (id) => {
+                    const el = document.getElementById(id);
+                    el.classList.add('opacity-0'); el.querySelector('div').classList.add('scale-90');
+                    setTimeout(() => { el.remove(); resolve(); }, 200);
+                }
+            });
         }
 
         main();
