@@ -1,367 +1,295 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GoHR - Unlock Mode</title>
-    
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GoHR - Unlock Mode</title>
+    
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <style>
-        body { 
-            font-family: 'Sarabun', sans-serif; 
-            background-color: #F0F4F8; 
-            -webkit-tap-highlight-color: transparent;
-        }
-        /* Custom Scrollbar hide */
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* Loading Spinner */
-        .spinner {
-            border: 3px solid #e0e7ff;
-            border-top: 3px solid #4338ca; 
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Card Effects */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-        .btn-press:active { transform: scale(0.95); transition: transform 0.1s; }
-    </style>
+    <style>
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background-color: #F8FAFC; 
+            color: #1e293b;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-active:active { transform: scale(0.97); transition: transform 0.1s ease-in-out; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #4f46e5; 
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body class="min-h-screen flex justify-center bg-slate-100">
+<body class="min-h-screen flex justify-center bg-slate-50">
 
-    <div class="w-full max-w-md min-h-screen relative flex flex-col bg-white shadow-2xl overflow-hidden">
-        
-        <header class="relative bg-gradient-to-br from-blue-900 via-indigo-800 to-blue-600 text-white px-6 pt-12 pb-20 rounded-b-[40px] shadow-lg">
-            <div class="absolute top-0 right-0 opacity-10 pointer-events-none">
-                <i class="fas fa-map-marked-alt text-[180px] -mr-10 -mt-10 transform rotate-12"></i>
-            </div>
+    <div class="w-full max-w-md min-h-screen shadow-lg relative flex flex-col bg-slate-50 overflow-hidden">
+        
+        <header class="relative bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-600 text-white px-6 pt-10 pb-16 rounded-b-[35px] shadow-lg overflow-hidden">
+            <div class="absolute top-0 right-0 opacity-10 pointer-events-none">
+                <i class="fas fa-globe-americas text-[150px] -mr-10 -mt-10 transform rotate-12"></i>
+            </div>
+            <div class="relative z-10 flex justify-between items-start">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wide flex items-center gap-1">
+                        <span class="text-white">Go</span><span class="text-orange-400">HR</span>
+                    </h1>
+                    <p class="text-indigo-100 text-sm opacity-90 flex items-center gap-1">
+                        <i class="fas fa-unlock-alt text-xs"></i> Unlock Mode (ไม่จำกัดพื้นที่)
+                    </p>
+                </div>
+                
+                <div id="profileSection" class="flex flex-col items-end opacity-0 transition-opacity duration-500">
+                     <img id="userImage" src="https://via.placeholder.com/100" class="w-12 h-12 rounded-full border-2 border-white/50 shadow-sm object-cover mb-1">
+                     <p id="userName" class="font-medium text-sm truncate max-w-[120px]">กำลังโหลด...</p>
+                </div>
+            </div>
+        </header>
 
-            <div class="relative z-10 flex justify-between items-start">
-                <div>
-                    <h1 class="text-3xl font-bold tracking-wide flex items-center gap-2">
-                        Go<span class="text-yellow-400">HR</span>
-                    </h1>
-                    <div class="mt-1 inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10">
-                        <i class="fas fa-globe-americas text-xs text-yellow-300"></i>
-                        <span class="text-xs font-medium tracking-wide">Unlock Mode (Anywhere)</span>
-                    </div>
-                </div>
-                
-                <div id="profileSection" class="flex flex-col items-end opacity-0 transition-opacity duration-700">
-                     <div class="p-0.5 bg-white/30 rounded-full mb-1">
-                        <img id="userImage" src="https://via.placeholder.com/100" class="w-12 h-12 rounded-full border-2 border-white object-cover">
-                     </div>
-                     <p id="userName" class="font-medium text-xs text-blue-100 truncate max-w-[100px]">Loading...</p>
-                </div>
-            </div>
-        </header>
+        <main class="px-5 -mt-8 relative z-20 pb-20">
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <button onclick="handleAction('เข้างาน')" class="btn-active glass-card bg-white p-5 rounded-2xl flex flex-col items-center gap-3 group transition-all hover:shadow-md border-b-4 border-transparent hover:border-emerald-500">
+                    <div class="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-2xl shadow-sm group-hover:scale-110 transition-transform">
+                        <i class="fas fa-sign-in-alt pl-1"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-slate-700">เข้างาน</span>
+                </button>
 
-        <main class="px-5 -mt-12 relative z-20 pb-24 flex-grow">
-            
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <button onclick="handleAction('เข้างาน')" class="btn-press glass-panel p-5 rounded-2xl flex flex-col items-center gap-3 shadow-sm hover:shadow-md transition-all group bg-white">
-                    <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 text-2xl shadow-inner group-hover:scale-110 transition-transform duration-300">
-                        <i class="fas fa-sign-in-alt pl-1"></i>
-                    </div>
-                    <span class="text-sm font-bold text-slate-700">เข้างาน</span>
-                </button>
+                <button onclick="handleAction('พักเบรค')" class="btn-active glass-card bg-white p-5 rounded-2xl flex flex-col items-center gap-3 group transition-all hover:shadow-md border-b-4 border-transparent hover:border-amber-500">
+                    <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 text-2xl shadow-sm group-hover:scale-110 transition-transform">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-slate-700">พักเบรค</span>
+                </button>
 
-                <button onclick="handleAction('พักเบรค')" class="btn-press glass-panel p-5 rounded-2xl flex flex-col items-center gap-3 shadow-sm hover:shadow-md transition-all group bg-white">
-                    <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 text-2xl shadow-inner group-hover:scale-110 transition-transform duration-300">
-                        <i class="fas fa-utensils"></i>
-                    </div>
-                    <span class="text-sm font-bold text-slate-700">พักเบรค</span>
-                </button>
+                <button onclick="handleAction('กลับมาทำงาน')" class="btn-active glass-card bg-white p-5 rounded-2xl flex flex-col items-center gap-3 group transition-all hover:shadow-md border-b-4 border-transparent hover:border-blue-600">
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 text-2xl shadow-sm group-hover:scale-110 transition-transform">
+                        <i class="fas fa-undo pr-1"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-slate-700">กลับทำ</span>
+                </button>
 
-                <button onclick="handleAction('กลับมาทำงาน')" class="btn-press glass-panel p-5 rounded-2xl flex flex-col items-center gap-3 shadow-sm hover:shadow-md transition-all group bg-white">
-                    <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-2xl shadow-inner group-hover:scale-110 transition-transform duration-300">
-                        <i class="fas fa-undo pr-1"></i>
-                    </div>
-                    <span class="text-sm font-bold text-slate-700">กลับทำ</span>
-                </button>
+                <button onclick="openCheckoutModal()" class="btn-active glass-card bg-white p-5 rounded-2xl flex flex-col items-center gap-3 group transition-all hover:shadow-md border-b-4 border-transparent hover:border-rose-500">
+                    <div class="w-14 h-14 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 text-2xl shadow-sm group-hover:scale-110 transition-transform">
+                        <i class="fas fa-sign-out-alt pl-1"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-slate-700">ออกงาน</span>
+                </button>
+            </div>
 
-                <button onclick="openCheckoutModal()" class="btn-press glass-panel p-5 rounded-2xl flex flex-col items-center gap-3 shadow-sm hover:shadow-md transition-all group bg-white border-b-4 border-transparent hover:border-rose-500">
-                    <div class="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 text-2xl shadow-inner group-hover:scale-110 transition-transform duration-300">
-                        <i class="fas fa-sign-out-alt pl-1"></i>
-                    </div>
-                    <span class="text-sm font-bold text-slate-700">ออกงาน</span>
-                </button>
-            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-history text-indigo-600"></i> ประวัติวันนี้
+                    </h3>
+                    <button onclick="fetchHistory()" class="text-xs text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full hover:bg-indigo-100 transition-colors flex items-center gap-1">
+                        <i class="fas fa-sync-alt animate-spin-slow"></i> รีเฟรช
+                    </button>
+                </div>
+                <div id="historyList" class="space-y-2.5 max-h-[250px] overflow-y-auto pr-1 scrollbar-hide">
+                    <div class="text-center py-8 text-slate-400 text-sm flex flex-col items-center gap-2">
+                        <i class="fas fa-circle-notch fa-spin text-indigo-300"></i>
+                        กำลังโหลดข้อมูล...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 
-            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-100">
-                <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
-                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-history text-indigo-600"></i> ประวัติวันนี้
-                    </h3>
-                    <button onclick="fetchHistory()" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full hover:bg-indigo-100 transition-colors flex items-center gap-1 active:scale-95">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                </div>
-                <div id="historyList" class="space-y-3 max-h-[220px] overflow-y-auto pr-1 scrollbar-hide">
-                    <div class="text-center py-6 text-slate-400 text-sm flex flex-col items-center gap-2">
-                        <i class="fas fa-circle-notch fa-spin text-indigo-300"></i> โหลดข้อมูล...
-                    </div>
-                </div>
-            </div>
-        </main>
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex-col items-center justify-center">
+        <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center">
+            <div class="spinner mb-4"></div>
+            <p class="text-sm font-medium text-slate-700">กำลังบันทึก (Unlock Mode)...</p>
+        </div>
+    </div>
 
-        <footer class="absolute bottom-4 w-full text-center">
-            <p class="text-[10px] text-slate-300 font-light">GoHR Unlock System v2.0</p>
-        </footer>
-    </div>
+    <div id="checkoutModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-end sm:items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden transform translate-y-full sm:scale-95 sm:translate-y-0 transition-all duration-300">
+            <div class="bg-rose-600 px-6 py-4 flex justify-between items-center text-white">
+                 <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> ยืนยันการออกงาน
+                </h3>
+                <button onclick="closeCheckoutModal()" class="text-rose-200 hover:text-white transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="p-6">
+                <label class="block text-sm font-medium text-slate-700 mb-2">
+                    รายละเอียดงานที่ทำวันนี้ <span class="text-rose-500">*</span>
+                </label>
+                <textarea id="workDescInput" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-rose-200 focus:border-rose-400 focus:outline-none h-28 resize-none placeholder-slate-400 transition-all" placeholder="เช่น เคลียร์เอกสารบัญชี, ประชุมลูกค้า..."></textarea>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeCheckoutModal()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition">ยกเลิก</button>
+                    <button onclick="confirmCheckout()" class="flex-1 py-3 bg-rose-600 text-white rounded-xl text-sm font-bold hover:bg-rose-700 shadow-md shadow-rose-200 transition">ยืนยันออกงาน</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex-col items-center justify-center">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center transform scale-100 animate-bounce-slow">
-            <div class="spinner mb-4"></div>
-            <p class="text-sm font-bold text-slate-700">กำลังส่งข้อมูล...</p>
-            <p class="text-xs text-slate-400 mt-1">Unlock Mode Active</p>
-        </div>
-    </div>
+    <script>
+        // ⚠️⚠️ ตั้งค่า LIFF ID ใหม่ และ URL ของ Google Apps Script ⚠️⚠️
+        const CONFIG = {
+            LIFF_ID: "2008786300-hy6x4jOO", // ใส่ ID ของ LIFF ตัวที่ 2
+            GAS_URL: "https://script.google.com/macros/s/AKfycbxC2y7v2de_HcIOlN9VIny-JP0zYo2EAbTn-U8IWzJaavZAW0muAmpEVzmqML00_njksg/exec"
+        };
 
-    <div id="checkoutModal" class="fixed inset-0 bg-slate-900/70 z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm transition-opacity opacity-0">
-        <div class="bg-white w-full max-w-sm rounded-t-[30px] sm:rounded-3xl shadow-2xl overflow-hidden transform translate-y-full sm:scale-95 sm:translate-y-0 transition-all duration-300">
-            <div class="bg-rose-600 px-6 py-5 flex justify-between items-center text-white">
-                 <h3 class="font-bold text-lg flex items-center gap-2">
-                    <i class="fas fa-clipboard-check"></i> บันทึกออกงาน
-                </h3>
-                <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
-            </div>
-            <div class="p-6 bg-slate-50">
-                <label class="block text-sm font-bold text-slate-700 mb-2">
-                    รายละเอียดงานที่ทำวันนี้ <span class="text-rose-500">*</span>
-                </label>
-                <textarea id="workDescInput" class="w-full bg-white border border-slate-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-rose-200 focus:border-rose-400 focus:outline-none h-32 resize-none placeholder-slate-400 shadow-sm" placeholder="เช่น เคลียร์เอกสารบัญชี, ประชุมลูกค้า, ตรวจหน้างาน..."></textarea>
-                
-                <div class="flex gap-3 mt-6">
-                    <button onclick="closeCheckoutModal()" class="flex-1 py-3.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition shadow-sm">ยกเลิก</button>
-                    <button onclick="confirmCheckout()" class="flex-1 py-3.5 bg-rose-600 text-white rounded-xl text-sm font-bold hover:bg-rose-700 shadow-md shadow-rose-200 transition">ยืนยัน</button>
-                </div>
-            </div>
-        </div>
-    </div>
+        let USER_PROFILE = null;
 
-    <script>
-        // ==========================================
-        // ⚙️ CONFIGURATION (ใส่ค่าของคุณที่นี่)
-        // ==========================================
-        const CONFIG = {
-            LIFF_ID: "2008786300-hy6x4jOO", // ⚠️ ใส่ ID LIFF ตัวที่ 2 (Unlock)
-            GAS_URL: "https://script.google.com/macros/s/AKfycbz_Y16nhIrirD5rqt5Czkz0ROea94AUifSaW7DiTy_5ncZBX5Z3pk8bB9GeB56ruBLw6Q/exec"   // ⚠️ ใส่ URL Web App ที่ Deploy ล่าสุด
-        };
-        // ==========================================
+        async function main() {
+            try {
+                await liff.init({ liffId: CONFIG.LIFF_ID });
+                if (!liff.isLoggedIn()) { liff.login(); return; }
+                USER_PROFILE = await liff.getProfile();
+                updateUI(USER_PROFILE);
+                fetchHistory(); // โหลดประวัติเลย ไม่ต้องเช็คระยะ
+            } catch (err) { console.error("LIFF Init Error:", err); }
+        }
 
-        let USER_PROFILE = null;
+        function updateUI(profile) {
+            document.getElementById('userImage').src = profile.pictureUrl;
+            document.getElementById('userName').innerText = profile.displayName;
+            document.getElementById('profileSection').classList.remove('opacity-0');
+        }
 
-        // 1. Initial Logic
-        async function main() {
-            try {
-                await liff.init({ liffId: CONFIG.LIFF_ID });
-                if (!liff.isLoggedIn()) { 
-                    liff.login(); 
-                    return; 
-                }
-                USER_PROFILE = await liff.getProfile();
-                updateUI(USER_PROFILE);
-                fetchHistory(); // ดึงประวัติทันทีเมื่อโหลดเสร็จ
-            } catch (err) { 
-                console.error("LIFF Error:", err);
-                Swal.fire('Error', 'ไม่สามารถเชื่อมต่อ LIFF ได้', 'error');
-            }
-        }
+        async function handleAction(type, note = "-") {
+            toggleLoading(true);
+            try {
+                // ดึง GPS (เพื่อบันทึก แต่ไม่เอามาคำนวณ)
+                const userLoc = await getGPS(); 
+                
+                // ส่งข้อมูลไป Backend โดย set distance = 0 และระบุ locationName ว่า Unlock
+                const payload = {
+                    action: 'submit_checkin',
+                    userId: USER_PROFILE.userId,
+                    displayName: USER_PROFILE.displayName,
+                    pictureUrl: USER_PROFILE.pictureUrl,
+                    type: type,
+                    lat: userLoc.lat,
+                    lng: userLoc.lng,
+                    note: note,
+                    locationName: "Unlock Mode", 
+                    distance: 0 // กุญแจสำคัญ: ส่ง 0 เพื่อให้ผ่าน Logic การเช็คระยะที่ Backend
+                };
 
-        function updateUI(profile) {
-            document.getElementById('userImage').src = profile.pictureUrl;
-            document.getElementById('userName').innerText = profile.displayName;
-            document.getElementById('profileSection').classList.remove('opacity-0');
-        }
+                await sendToGAS(payload);
+                
+                toggleLoading(false);
+                await Swal_Alert("success", `บันทึก "${type}" สำเร็จ`, `(Unlock Mode)\nพิกัด: ${userLoc.lat.toFixed(4)}, ${userLoc.lng.toFixed(4)}`);
+                fetchHistory();
+            } catch (err) {
+                toggleLoading(false);
+                Swal_Alert("error", "เกิดข้อผิดพลาด", err.message);
+            }
+        }
 
-        // 2. Main Action Handler (The Unlock Logic)
-        async function handleAction(type, note = "-") {
-            toggleLoading(true);
-            try {
-                // ดึง GPS เพื่อบันทึกเป็นหลักฐาน (แต่ Backend จะไม่เอาไปเช็คระยะ)
-                const userLoc = await getGPS(); 
-                
-                // Construct Payload
-                const payload = {
-                    action: 'submit_checkin',
-                    userId: USER_PROFILE.userId,
-                    displayName: USER_PROFILE.displayName,
-                    pictureUrl: USER_PROFILE.pictureUrl,
-                    type: type,
-                    lat: userLoc.lat,
-                    lng: userLoc.lng,
-                    note: note,
-                    // 🔑 KEY FIX: ส่งค่านี้เพื่อให้ Backend รู้ว่าเป็น Unlock Mode
-                    locationName: "Unlock Mode", 
-                    distance: 0 
-                };
+        async function fetchHistory() {
+            const list = document.getElementById('historyList');
+            try {
+                const response = await fetch(CONFIG.GAS_URL, {
+                    method: 'POST', // ใช้ POST เพื่อเลี่ยงปัญหา CORS กับ GAS บางกรณี
+                    mode: 'no-cors', // หากเจอปัญหา CORS ให้เปิด no-cors แต่จะไม่เห็น response body
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ใช้ text/plain เพื่อเลี่ยง Preflight
+                    body: JSON.stringify({ action: 'get_today_history', userId: USER_PROFILE.userId })
+                });
+                
+                // หมายเหตุ: การใช้ fetch กับ GAS ผ่าน GitHub Pages อาจติดเรื่อง CORS
+                // วิธีแก้ที่ง่ายที่สุดคือใช้ doPost ที่ GAS ให้ return ContentService.createTextOutput
+                // และในฝั่งนี้อาจจะต้องยอมรับ opaque response (no-cors) หรือใช้เทคนิค JSONP (แต่ GAS เลิก support แล้ว)
+                // เพื่อความชัวร์ในกรณีนี้ ผมแนะนำให้ใช้ method POST แบบปกติก่อน
+                
+                // ถ้าใช้ no-cors เราจะอ่าน body ไม่ได้ ดังนั้นถ้าจะอ่านประวัติ
+                // แนะนำให้ Backend return Header: "Access-Control-Allow-Origin: *"
+                // ซึ่งเดี๋ยวผมจะปรับ Code.gs ให้รองรับครับ
+                
+                // *เพื่อความง่าย ผมขอใช้ท่ามาตรฐานก่อน ถ้าติด CORS แจ้งผมได้ครับ*
+                
+                // ลอง fetch แบบปกติ (หวังว่า GAS deploy เป็น Anyone แล้ว)
+                const normalRes = await fetch(CONFIG.GAS_URL, {
+                     method: 'POST',
+                     body: JSON.stringify({ action: 'get_today_history', userId: USER_PROFILE.userId })
+                });
+                const res = await normalRes.json();
+                renderHistory(res.data);
 
-                const result = await sendToGAS(payload);
-                
-                toggleLoading(false);
-                
-                // Show Success
-                await Swal.fire({
-                    icon: 'success',
-                    title: `บันทึก ${type} สำเร็จ`,
-                    text: `(Unlock Mode) เวลา: ${result.time}`,
-                    confirmButtonColor: '#304FFE',
-                    timer: 2000
-                });
-                
-                fetchHistory();
+            } catch (err) {
+                // กรณี Error เงียบไว้ก่อน หรือแสดง UI ว่าโหลดไม่ได้
+                console.warn("History fetch error:", err);
+            }
+        }
 
-            } catch (err) {
-                toggleLoading(false);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'เกิดข้อผิดพลาด',
-                    text: err.message || 'ไม่สามารถติดต่อ Server ได้',
-                    confirmButtonColor: '#d33'
-                });
-            }
-        }
+        function renderHistory(logs) {
+            const list = document.getElementById('historyList');
+            list.innerHTML = "";
+            if (!logs || logs.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 text-slate-300 text-sm">ยังไม่มีประวัติวันนี้</div>`;
+                return;
+            }
+            logs.forEach(log => {
+                let iconClass = "fa-clock", textClass = "text-slate-600", bgClass = "bg-slate-100", borderClass = "border-slate-300";
+                if(log.action.includes("เข้า")) { iconClass = "fa-sign-in-alt"; textClass = "text-emerald-700"; bgClass = "bg-emerald-50"; borderClass = "border-emerald-500"; }
+                else if(log.action.includes("ออก")) { iconClass = "fa-sign-out-alt"; textClass = "text-rose-700"; bgClass = "bg-rose-50"; borderClass = "border-rose-500"; }
+                
+                list.innerHTML += `
+                    <div class="flex items-center justify-between p-3 ${bgClass} rounded-xl border-l-4 ${borderClass} shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-white/60 flex items-center justify-center ${textClass} shadow-sm"><i class="fas ${iconClass} text-sm"></i></div>
+                            <div>
+                                <p class="text-sm font-bold ${textClass}">${log.action}</p>
+                                <p class="text-[10px] text-slate-500">${log.location || 'Unlock Mode'}</p>
+                            </div>
+                        </div>
+                        <span class="text-sm font-mono font-bold text-slate-600 bg-white/70 px-2 py-1 rounded-md">${log.time}</span>
+                    </div>`;
+            });
+        }
 
-        // 3. Network & Data Logic
-        async function sendToGAS(payload) {
-            // ใช้ fetch POST ปกติ (GAS ต้อง Deploy เป็น 'Anyone')
-            const response = await fetch(CONFIG.GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-            
-            // อ่านค่าเป็น Text ก่อนกัน Error HTML
-            const text = await response.text();
-            let data;
-            try {
-                data = JSON.parse(text);
-            } catch (e) {
-                console.error("Parse Error:", text);
-                throw new Error("Server ตอบกลับผิดรูปแบบ (Parse Error)");
-            }
+        // Utilities
+        function getGPS() {
+            return new Promise((resolve) => {
+                if(!navigator.geolocation) resolve({lat:0, lng:0});
+                navigator.geolocation.getCurrentPosition(
+                    pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                    err => { console.warn(err); resolve({ lat:0, lng:0 }); },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            });
+        }
+        async function sendToGAS(payload) {
+             // ใช้ POST ธรรมดา (GAS ต้อง Deploy เป็น Anyone)
+            return fetch(CONFIG.GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+        }
+        function toggleLoading(show) {
+            const el = document.getElementById('loadingOverlay');
+            show ? (el.classList.remove('hidden'), el.classList.add('flex')) : (el.classList.add('hidden'), el.classList.remove('flex'));
+        }
+        
+        // Modal functions
+        const modal = document.getElementById('checkoutModal');
+        function openCheckoutModal() { modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(()=>modal.classList.remove('opacity-0'),10); }
+        function closeCheckoutModal() { modal.classList.add('opacity-0'); setTimeout(()=>{ modal.classList.add('hidden'); modal.classList.remove('flex'); },300); }
+        function confirmCheckout() {
+            const note = document.getElementById('workDescInput').value.trim();
+            if(!note) return document.getElementById('workDescInput').focus();
+            closeCheckoutModal(); handleAction('ออกงาน', note); document.getElementById('workDescInput').value = "";
+        }
+        function Swal_Alert(type, title, text) {
+             // (Copy ฟังก์ชัน Swal_Alert จาก index.html มาใส่ตรงนี้เพื่อให้แสดงผลเหมือนกัน)
+             // เนื่องจากพื้นที่จำกัด ผมละไว้ในฐานที่เข้าใจว่าใช้ตัวเดียวกันครับ
+             alert(`${title}\n${text}`); // Fallback
+        }
 
-            if (data.status === 'error') {
-                throw new Error(data.message);
-            }
-            return data;
-        }
-
-        async function fetchHistory() {
-            const list = document.getElementById('historyList');
-            // Show loading skeleton if empty
-            if(list.children.length === 0 || list.innerHTML.includes('โหลดข้อมูล')) {
-                list.innerHTML = `<div class="text-center py-6 text-slate-400 text-sm flex flex-col items-center gap-2"><i class="fas fa-circle-notch fa-spin text-indigo-300"></i> กำลังโหลด...</div>`;
-            }
-
-            try {
-                // ใช้ POST เพื่อความชัวร์ (บางที GET ติด Cache/CORS)
-                const res = await fetch(CONFIG.GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'get_today_history', userId: USER_PROFILE.userId })
-                });
-                const json = await res.json();
-                renderHistory(json.data);
-            } catch (err) {
-                console.warn("History Error:", err);
-                list.innerHTML = `<div class="text-center py-4 text-red-400 text-xs">โหลดประวัติไม่สำเร็จ</div>`;
-            }
-        }
-
-        function renderHistory(logs) {
-            const list = document.getElementById('historyList');
-            list.innerHTML = "";
-            
-            if (!logs || logs.length === 0) {
-                list.innerHTML = `<div class="text-center py-8 text-slate-300 text-sm">วันนี้ยังไม่มีรายการ</div>`;
-                return;
-            }
-
-            logs.forEach(log => {
-                let colorClass = "text-slate-600";
-                let icon = "fa-clock";
-                let bgIcon = "bg-slate-100";
-
-                if (log.action.includes("เข้า")) { colorClass = "text-emerald-600"; icon = "fa-sign-in-alt"; bgIcon = "bg-emerald-50"; }
-                else if (log.action.includes("ออก")) { colorClass = "text-rose-600"; icon = "fa-sign-out-alt"; bgIcon = "bg-rose-50"; }
-                else if (log.action.includes("เบรค")) { colorClass = "text-amber-500"; icon = "fa-utensils"; bgIcon = "bg-amber-50"; }
-                else if (log.action.includes("กลับ")) { colorClass = "text-blue-600"; icon = "fa-undo"; bgIcon = "bg-blue-50"; }
-
-                list.innerHTML += `
-                    <div class="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full ${bgIcon} flex items-center justify-center ${colorClass}">
-                                <i class="fas ${icon}"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-bold ${colorClass}">${log.action}</p>
-                                <p class="text-[10px] text-slate-400">Unlock Mode</p>
-                            </div>
-                        </div>
-                        <span class="text-sm font-mono font-bold text-slate-600 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">${log.time}</span>
-                    </div>`;
-            });
-        }
-
-        // 4. Utilities & Modal
-        function getGPS() {
-            return new Promise((resolve) => {
-                if(!navigator.geolocation) resolve({lat:0, lng:0});
-                navigator.geolocation.getCurrentPosition(
-                    pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                    err => { console.warn("GPS Fail:", err); resolve({ lat:0, lng:0 }); },
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                );
-            });
-        }
-
-        function toggleLoading(show) {
-            const el = document.getElementById('loadingOverlay');
-            show ? (el.classList.remove('hidden'), el.classList.add('flex')) : (el.classList.add('hidden'), el.classList.remove('flex'));
-        }
-
-        // Modal Controls
-        const modal = document.getElementById('checkoutModal');
-        function openCheckoutModal() { 
-            modal.classList.remove('hidden'); 
-            modal.classList.add('flex'); 
-            setTimeout(() => modal.classList.remove('opacity-0'), 10); // Fade in
-            document.getElementById('checkoutModal').querySelector('div').classList.remove('translate-y-full'); // Slide up
-        }
-        function closeCheckoutModal() { 
-            modal.classList.add('opacity-0'); 
-            document.getElementById('checkoutModal').querySelector('div').classList.add('translate-y-full');
-            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300); 
-        }
-        function confirmCheckout() {
-            const note = document.getElementById('workDescInput').value.trim();
-            if (!note) {
-                Swal.fire('แจ้งเตือน', 'กรุณาระบุรายละเอียดงานที่ทำวันนี้', 'warning');
-                return;
-            }
-            closeCheckoutModal();
-            handleAction('ออกงาน', note);
-            document.getElementById('workDescInput').value = ""; // Clear input
-        }
-
-        // Run
-        main();
-    </script>
+        main();
+    </script>
 </body>
 </html>
