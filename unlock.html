@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GoHR - ระบบลงเวลาทำงาน</title>
+    <title>GoHR - Unlock Mode</title>
     
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,11 +17,7 @@
             color: #1e293b;
             -webkit-tap-highlight-color: transparent;
         }
-        
-        /* Animation */
         .btn-active:active { transform: scale(0.97); transition: transform 0.1s ease-in-out; }
-        
-        /* Glassmorphism */
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
@@ -29,8 +25,6 @@
             -webkit-backdrop-filter: blur(4px);
             border: 1px solid rgba(255, 255, 255, 0.18);
         }
-
-        /* Loading Spinner */
         .spinner {
             border: 3px solid #e2e8f0;
             border-top: 3px solid #1d4ed8;
@@ -40,8 +34,6 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Scrollbar Hide */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -50,31 +42,30 @@
 
     <div class="w-full max-w-md min-h-screen shadow-xl relative flex flex-col bg-slate-50 overflow-hidden">
         
-        <header class="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-600 text-white px-6 pt-10 pb-16 rounded-b-[35px] shadow-lg overflow-hidden">
+        <header class="relative bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-600 text-white px-6 pt-10 pb-16 rounded-b-[35px] shadow-lg overflow-hidden">
             <div class="absolute top-0 right-0 opacity-5 pointer-events-none">
-                <i class="fas fa-clock text-[150px] -mr-10 -mt-10 transform rotate-12"></i>
+                <i class="fas fa-unlock-alt text-[150px] -mr-10 -mt-10 transform rotate-12"></i>
             </div>
-            <div class="absolute bottom-0 left-0 opacity-5 pointer-events-none">
-                <i class="fas fa-building text-[100px] -ml-10 -mb-5 transform -rotate-12"></i>
-            </div>
-
+            
             <div class="relative z-10 flex justify-between items-start">
                 <div>
                     <h1 class="text-2xl font-bold tracking-wide flex items-center gap-1">
                         <span class="text-white">Go</span><span class="text-orange-400">HR</span>
                     </h1>
-                    <p class="text-blue-100 text-sm opacity-90">ระบบลงเวลาทำงานออนไลน์</p>
+                    <p class="text-indigo-100 text-sm opacity-90 flex items-center gap-1">
+                        <i class="fas fa-globe-asia text-xs"></i> Unlock Mode (ไม่จำกัดพื้นที่)
+                    </p>
                 </div>
                 
                 <div id="profileSection" class="flex flex-col items-end opacity-0 transition-opacity duration-500">
                      <img id="userImage" src="https://via.placeholder.com/100" class="w-12 h-12 rounded-full border-2 border-white/50 shadow-sm object-cover mb-1">
                      <p id="userName" class="font-medium text-sm truncate max-w-[120px]">กำลังโหลด...</p>
-                     <div class="flex items-center gap-1.5 bg-blue-950/30 px-2 py-0.5 rounded-full mt-1">
+                     <div class="flex items-center gap-1.5 bg-indigo-950/30 px-2 py-0.5 rounded-full mt-1">
                         <span class="flex h-2 w-2 relative">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                         </span>
-                        <span class="text-[10px] text-orange-100">พร้อมใช้งาน</span>
+                        <span class="text-[10px] text-green-100">GPS Active</span>
                     </div>
                 </div>
             </div>
@@ -83,7 +74,6 @@
         <main class="px-5 -mt-8 relative z-20 pb-20">
             
             <div class="grid grid-cols-2 gap-4 mb-6">
-                
                 <button onclick="handleAction('เข้างาน')" class="btn-active glass-card bg-white p-5 rounded-2xl flex flex-col items-center gap-3 group transition-all hover:shadow-md border-b-4 border-transparent hover:border-emerald-500">
                     <div class="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-2xl shadow-sm group-hover:scale-110 transition-transform">
                         <i class="fas fa-sign-in-alt pl-1"></i>
@@ -111,35 +101,33 @@
                     </div>
                     <span class="text-sm font-semibold text-slate-700">ออกงาน</span>
                 </button>
-
             </div>
 
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
                 <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
                     <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-history text-blue-600"></i> ประวัติวันนี้
+                        <i class="fas fa-history text-indigo-600"></i> ประวัติวันนี้
                     </h3>
-                    <button onclick="fetchHistory()" class="text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors flex items-center gap-1">
+                    <button onclick="fetchHistory()" class="text-xs text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full hover:bg-indigo-100 transition-colors flex items-center gap-1">
                         <i class="fas fa-sync-alt animate-spin-slow"></i> รีเฟรช
                     </button>
                 </div>
                 <div id="historyList" class="space-y-2.5 max-h-[250px] overflow-y-auto pr-1 scrollbar-hide">
                     <div class="text-center py-8 text-slate-400 text-sm flex flex-col items-center gap-2">
-                        <i class="fas fa-circle-notch fa-spin text-blue-300"></i>
+                        <i class="fas fa-circle-notch fa-spin text-indigo-300"></i>
                         กำลังโหลดข้อมูล...
                     </div>
                 </div>
             </div>
 
         </main>
-
     </div>
 
     <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex-col items-center justify-center">
         <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center">
             <div class="spinner mb-4"></div>
             <p class="text-sm font-medium text-slate-700">กำลังบันทึกข้อมูล...</p>
-            <p class="text-xs text-slate-400 mt-1">กรุณาอย่าปิดหน้าต่าง</p>
+            <p class="text-xs text-slate-400 mt-1">Unlock Mode Active</p>
         </div>
     </div>
 
@@ -156,7 +144,6 @@
                     รายละเอียดงานที่ทำวันนี้ <span class="text-rose-500">*</span>
                 </label>
                 <textarea id="workDescInput" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-rose-200 focus:border-rose-400 focus:outline-none h-28 resize-none placeholder-slate-400 transition-all" placeholder="เช่น เคลียร์เอกสารบัญชี, ประชุมลูกค้า..."></textarea>
-                
                 <div class="flex gap-3 mt-6">
                     <button onclick="closeCheckoutModal()" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition">ยกเลิก</button>
                     <button onclick="confirmCheckout()" class="flex-1 py-3 bg-rose-600 text-white rounded-xl text-sm font-bold hover:bg-rose-700 shadow-md shadow-rose-200 transition">ยืนยันออกงาน</button>
@@ -166,7 +153,6 @@
     </div>
 
     <script>
-        // CONFIG
         const CONFIG = {
             LIFF_ID: "2008786300-Zxf736Ka", 
             GAS_URL: "https://script.google.com/macros/s/AKfycbw6wN7Zjm7KwgJTEkQPTivuH7VydXqSGPbMn9bqWu-7LR4JGk8-FChgYhB5pLBAkNA8/exec"
@@ -175,26 +161,16 @@
         let USER_PROFILE = null;
         let OFFICE_LOCATIONS = [];
 
-        // --- 1. System Init ---
         async function main() {
             try {
                 await liff.init({ liffId: CONFIG.LIFF_ID });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
+                if (!liff.isLoggedIn()) { liff.login(); return; }
                 
                 USER_PROFILE = await liff.getProfile();
                 updateUI(USER_PROFILE);
                 
-                await Promise.all([
-                    fetchHistory(),
-                    fetchOfficeLocations()
-                ]);
-
-            } catch (err) {
-                console.error("LIFF Init Error:", err);
-            }
+                await Promise.all([ fetchHistory(), fetchOfficeLocations() ]);
+            } catch (err) { console.error("LIFF Init Error:", err); }
         }
 
         function updateUI(profile) {
@@ -203,7 +179,6 @@
             document.getElementById('profileSection').classList.remove('opacity-0');
         }
 
-        // --- 2. Data Fetching ---
         async function fetchOfficeLocations() {
             try {
                 const response = await fetch(CONFIG.GAS_URL, {
@@ -212,20 +187,13 @@
                 });
                 const result = await response.json();
                 OFFICE_LOCATIONS = result.data || [];
-            } catch (err) {
-                console.warn("Location Load Error:", err);
-            }
+            } catch (err) { console.warn("Location Load Error:", err); }
         }
 
         async function fetchHistory() {
             const list = document.getElementById('historyList');
             try {
-                list.innerHTML = `
-                    <div class="text-center py-8 text-slate-400 text-sm flex flex-col items-center gap-2">
-                        <i class="fas fa-circle-notch fa-spin text-blue-500 text-xl"></i>
-                        กำลังอัปเดตข้อมูล...
-                    </div>`;
-                
+                list.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm flex flex-col items-center gap-2"><i class="fas fa-circle-notch fa-spin text-indigo-500 text-xl"></i> กำลังอัปเดตข้อมูล...</div>`;
                 const response = await fetch(CONFIG.GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'get_today_history', userId: USER_PROFILE.userId })
@@ -241,19 +209,11 @@
             const list = document.getElementById('historyList');
             list.innerHTML = "";
             if (!logs || logs.length === 0) {
-                list.innerHTML = `
-                    <div class="text-center py-8 text-slate-300 text-sm flex flex-col items-center">
-                        <i class="fas fa-clipboard-list text-4xl mb-2 opacity-50"></i>
-                        ยังไม่มีประวัติการลงเวลาวันนี้
-                    </div>`;
+                list.innerHTML = `<div class="text-center py-8 text-slate-300 text-sm flex flex-col items-center"><i class="fas fa-clipboard-list text-4xl mb-2 opacity-50"></i>ยังไม่มีประวัติการลงเวลาวันนี้</div>`;
                 return;
             }
             logs.forEach(log => {
-                let iconClass = "fa-clock";
-                let textClass = "text-slate-600";
-                let bgClass = "bg-slate-100";
-                let borderClass = "border-l-4 border-slate-300";
-
+                let iconClass = "fa-clock", textClass = "text-slate-600", bgClass = "bg-slate-100", borderClass = "border-l-4 border-slate-300";
                 if(log.action.includes("เข้า")) { iconClass = "fa-sign-in-alt"; textClass = "text-emerald-700"; bgClass = "bg-emerald-50"; borderClass = "border-l-4 border-emerald-500"; }
                 else if(log.action.includes("ออก")) { iconClass = "fa-sign-out-alt"; textClass = "text-rose-700"; bgClass = "bg-rose-50"; borderClass = "border-l-4 border-rose-500"; }
                 else if(log.action.includes("พัก")) { iconClass = "fa-utensils"; textClass = "text-amber-700"; bgClass = "bg-amber-50"; borderClass = "border-l-4 border-amber-500"; }
@@ -277,29 +237,38 @@
             });
         }
 
-        // --- 3. Action Handlers ---
+        // --- UNLOCK MODE LOGIC ---
         async function handleAction(type, note = "-") {
             toggleLoading(true);
             try {
+                // 1. ดึง GPS (ยังจำเป็นต้องดึงเพื่อเก็บ Record แต่ไม่นำมา Block)
                 const userLoc = await getGPS();
-                if (userLoc.lat === 0 && userLoc.lng === 0) throw new Error("ไม่พบสัญญาณ GPS");
-
-                if (OFFICE_LOCATIONS.length === 0) {
-                    await fetchOfficeLocations();
-                    if (OFFICE_LOCATIONS.length === 0) throw new Error("ไม่พบข้อมูลสถานที่ทำงาน");
-                }
-
-                let matchedLocation = null;
+                
+                // ถ้าไม่เจอ GPS เลยจริงๆ (User ปิด Location) จะใส่ 0,0 ไปแทน หรือจะแจ้งเตือนก็ได้
+                // ในที่นี้คือยอมให้ผ่าน แต่ lat/lng เป็น 0
+                
+                // 2. คำนวณหาชื่อสถานที่ที่ใกล้ที่สุด (เพื่อความสวยงามใน Report)
+                let matchedLocationName = "นอกสถานที่ (Unlock)";
                 let minDistance = Infinity;
-                OFFICE_LOCATIONS.forEach(office => {
-                    const dist = calculateDistance(userLoc.lat, userLoc.lng, parseFloat(office.lat), parseFloat(office.lng));
-                    if (dist <= (parseFloat(office.radius) || 500) && dist < minDistance) {
-                        minDistance = dist;
-                        matchedLocation = office;
-                    }
-                });
 
-                if (!matchedLocation) throw new Error(`คุณอยู่นอกพื้นที่ทำงาน (ห่าง ${Math.round(minDistance)} ม.)`);
+                if (OFFICE_LOCATIONS.length > 0 && userLoc.lat !== 0) {
+                    OFFICE_LOCATIONS.forEach(office => {
+                        const dist = calculateDistance(userLoc.lat, userLoc.lng, parseFloat(office.lat), parseFloat(office.lng));
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            // ถ้าใกล้ในระยะ 500m ให้ใช้ชื่อออฟฟิศ, ถ้าไกลกว่านั้น ให้ใช้ชื่อออฟฟิศ + (Unlock)
+                            // หรือในโหมดนี้ เราจะอนุโลมให้ใช้ชื่อออฟฟิศที่ใกล้ที่สุดได้เลย แม้จะไกลแค่ไหน
+                            if (dist <= (parseFloat(office.radius) || 500)) {
+                                matchedLocationName = office.name; 
+                            } else {
+                                matchedLocationName = `${office.name} (ไกล ${Math.round(dist)} ม.)`;
+                            }
+                        }
+                    });
+                }
+                
+                // *** จุดสำคัญ: ตัด Logic ที่ throw Error ออกไปเลย ***
+                // เราส่งข้อมูลไปบันทึกได้เลย ไม่ว่าระยะทางจะเป็นเท่าไหร่
 
                 await sendToGAS({
                     action: 'submit_checkin',
@@ -310,21 +279,20 @@
                     lat: userLoc.lat,
                     lng: userLoc.lng,
                     note: note,
-                    locationName: matchedLocation.name,
-                    distance: Math.round(minDistance)
+                    locationName: matchedLocationName, // ส่งชื่อสถานที่ที่ระบบ Match ได้ (หรือ "นอกสถานที่")
+                    distance: (minDistance === Infinity) ? 0 : Math.round(minDistance)
                 });
 
                 toggleLoading(false);
-                await Swal_Alert("success", `บันทึก "${type}" สำเร็จ`, `ณ ${matchedLocation.name}`);
+                await Swal_Alert("success", `บันทึก "${type}" สำเร็จ`, `พิกัด: ${matchedLocationName}`);
                 fetchHistory();
 
             } catch (err) {
                 toggleLoading(false);
-                Swal_Alert("error", "ทำรายการไม่สำเร็จ", err.message);
+                Swal_Alert("error", "เกิดข้อผิดพลาด", err.message);
             }
         }
 
-        // --- 4. Utilities ---
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371e3;
             const φ1 = lat1 * Math.PI/180;
@@ -341,7 +309,7 @@
                 navigator.geolocation.getCurrentPosition(
                     pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
                     err => resolve({ lat:0, lng:0 }),
-                    { enableHighAccuracy: true, timeout: 5000 }
+                    { enableHighAccuracy: true, timeout: 5000 } // ลดเวลา Timeout ลงหน่อยเพื่อให้ไวขึ้น
                 );
             });
         }
@@ -359,22 +327,21 @@
             else { el.classList.add('hidden'); el.classList.remove('flex'); }
         }
 
-        // Custom Alert
         function Swal_Alert(type, title, text) {
             return new Promise(resolve => {
                 const alertId = 'customAlert_' + Date.now();
                 const iconHtml = type === 'success' 
                     ? '<div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-500 mb-3 text-2xl"><i class="fas fa-check"></i></div>'
                     : '<div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-500 mb-3 text-2xl"><i class="fas fa-times"></i></div>';
-                const btnBg = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
+                const btnBg = type === 'success' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-rose-600 hover:bg-rose-700';
                 
                 const html = `
                     <div id="${alertId}" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-                        <div class="bg-white rounded-2xl shadow-xl p-6 max-w-xs w-full flex flex-col items-center">
+                        <div class="bg-white rounded-2xl shadow-xl p-6 max-w-xs w-full flex flex-col items-center animate-[fadeIn_0.2s_ease-out]">
                             ${iconHtml}
                             <h3 class="text-lg font-bold text-slate-800 mb-1">${title}</h3>
-                            <p class="text-sm text-slate-600 text-center mb-5">${text}</p>
-                            <button onclick="closeCustomAlert('${alertId}')" class="w-full py-2.5 ${btnBg} text-white rounded-xl font-medium">ตกลง</button>
+                            <p class="text-sm text-slate-600 text-center mb-5 whitespace-pre-line">${text}</p>
+                            <button onclick="closeCustomAlert('${alertId}')" class="w-full py-2.5 ${btnBg} text-white rounded-xl font-medium transition-all">ตกลง</button>
                         </div>
                     </div>`;
                 document.body.insertAdjacentHTML('beforeend', html);
@@ -382,7 +349,7 @@
             });
         }
 
-        // Modal Control
+        // Modal
         const modal = document.getElementById('checkoutModal');
         const modalBox = modal.querySelector('div');
         function openCheckoutModal() {
